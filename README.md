@@ -68,8 +68,9 @@ class UserController extends Controller {
         return User::create($request->all());
     }
 }
-
 ```
+> Make sure to run `php artisan storage:link` to see the images from public storage disk 
+
 ## Image Field options
 
 ImageUp gives you tons of customization on how the upload and resize will be handled from defined field options, following are the things you can customize:
