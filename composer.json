@@ -1,0 +1,53 @@
+{
+  "name": "qcod/laravel-imageup",
+  "description": "Auto Image upload, resize and crop for Laravel eloquent model using Intervention image",
+  "homepage": "https://github.com/qcod/laravel-imageup",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "laravel",
+    "image upload",
+    "image crop",
+    "image resize",
+    "intervention image",
+    "eloquent",
+    "model",
+    "laravel5"
+  ],
+  "authors": [
+    {
+      "name": "Mohd Saqueib Ansari",
+      "email": "saquibweb@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.6.0",
+    "laravel/framework": "~5.4.0|~5.5.0|~5.6.0|~5.7.0",
+    "intervention/image": "^2.4"
+  },
+  "require-dev": {
+    "orchestra/testbench": "~3.5",
+    "phpunit/phpunit" : "^6.2|^7.0",
+    "mockery/mockery": "^1.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "QCod\\ImageUp\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "QCod\\ImageUp\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "QCod\\ImageUp\\ImageUpServiceProvider"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit"
+  }
+}
