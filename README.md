@@ -27,7 +27,7 @@ You can optionally publish the config file with:
 php artisan vendor:publish --provider="QCod\ImageUp\ImageUpServiceProvider" --tag="config"
 ```
 
-It will create `config/imageup.php` with all the settings.
+It will create [`config/imageup.php`](#config-file) with all the settings.
 
 ### Getting Started
 
@@ -230,11 +230,41 @@ It gives you `<img />` tag for a field.
 <!-- <img src="http://www.example.com/storage/uploads/iGqUEbCPTv7EuqkndE34CNitlJbFhuxEWmgN9JIh.jpeg" class="float-left mr-3 /> -->
 ```
 
-Config file
+### Config file
 
 ```php
 <?php
-// config file 
+
+return [
+
+    /**
+     * Default upload storage disk
+     */
+    'upload_disk' => 'public',
+
+    /**
+     * Default Image upload directory on the disc
+     * eg. 'uploads' or 'user/avatar'
+     */
+    'upload_directory' => 'uploads',
+
+    /**
+     * Auto upload images from incoming Request if same named field or
+     * file_input field on option present upon model update and create.
+     * can be override in individual field options
+     */
+    'auto_upload_images' => true,
+
+    /**
+     * It will auto delete images once record is deleted from database
+     */
+    'auto_delete_images' => true,
+
+    /**
+     * Set an image quality
+     */
+    'resize_image_quality' => 80
+];
 ```
 
 ### Changelog
