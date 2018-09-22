@@ -3,6 +3,7 @@
 namespace QCod\ImageUp\Tests;
 
 use Illuminate\Support\Facades\Route;
+use Orchestra\Database\ConsoleServiceProvider;
 use QCod\ImageUp\Tests\Models\User;
 use QCod\ImageUp\ImageUpServiceProvider;
 use Intervention\Image\ImageServiceProvider;
@@ -39,7 +40,8 @@ abstract class TestCase extends OrchestraTestCase
     {
         return [
             ImageServiceProvider::class,
-            ImageUpServiceProvider::class
+            ImageUpServiceProvider::class,
+            ConsoleServiceProvider::class
         ];
     }
 

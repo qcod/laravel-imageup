@@ -26,9 +26,10 @@
     "intervention/image": "^2.4"
   },
   "require-dev": {
-    "orchestra/testbench": "~3.5",
-    "phpunit/phpunit" : "^6.2|^7.0",
-    "mockery/mockery": "^1.1"
+    "orchestra/testbench": "~3.4",
+    "orchestra/database": "~3.4.0",
+    "mockery/mockery": "^0.9.4 || ~1.0",
+    "phpunit/phpunit": "~5.7"
   },
   "autoload": {
     "psr-4": {

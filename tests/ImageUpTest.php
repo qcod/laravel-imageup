@@ -19,10 +19,10 @@ class ImageUpTest extends TestCase
     }
 
     /**
-    * it_gets_image_field_options
-    *
-    * @test
-    */
+     * it_gets_image_field_options
+     *
+     * @test
+     */
     function it_gets_image_field_options()
     {
         $user = new class() extends User
@@ -46,10 +46,10 @@ class ImageUpTest extends TestCase
     }
 
     /**
-    * it_throws_exception_if_image_field_not_found
-    *
-    * @test
-    */
+     * it_throws_exception_if_image_field_not_found
+     *
+     * @test
+     */
     function it_throws_exception_if_image_field_not_found()
     {
         $user = new User();
@@ -74,10 +74,10 @@ class ImageUpTest extends TestCase
     }
 
     /**
-    * it sets image fields with mixed option and without options
-    *
-    * @test
-    */
+     * it sets image fields with mixed option and without options
+     *
+     * @test
+     */
     function it_sets_image_fields_with_mixed_option_and_without_options()
     {
         $user = new User();
@@ -91,10 +91,10 @@ class ImageUpTest extends TestCase
     }
 
     /**
-    * it sets image fields without any options
-    *
-    * @test
-    */
+     * it sets image fields without any options
+     *
+     * @test
+     */
     function it_sets_image_fields_without_any_options()
     {
         $user = new User();
@@ -385,10 +385,10 @@ class ImageUpTest extends TestCase
     }
 
     /**
-    * it auto uploads images if config is set do it
-    *
-    * @test
-    */
+     * it auto uploads images if config is set do it
+     *
+     * @test
+     */
     function it_auto_uploads_images_if_config_is_set_do_it()
     {
         Storage::fake('public');
@@ -401,7 +401,7 @@ class ImageUpTest extends TestCase
             'avatar' => $image
         ];
 
-        $this->post('test/users', $payload)->assertStatus(201);
+        $this->post('test/users', $payload)->assertStatus(200);
 
         Storage::disk('public')->assertExists('uploads/' . $image->hashName());
     }
