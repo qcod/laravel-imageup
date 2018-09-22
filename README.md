@@ -138,6 +138,10 @@ class User extends Model {
 
 You are not limited to use auto upload image feature only. This trait will give you following methods which you can use to manually upload and resize image.
 
+**Note:** Make sure you have disabled auto upload by setting `protected $autoUploadImages = false;` 
+on model or by calling `$model->setImagesField(['cover' => ['auto_upload' => false]);`
+otherwise you will be not seeing your manual uploads, since it will be overwritten by auto upload upon model save.
+
 #### $model->uploadImage($imageFile, $field = null)
 
 Upload image for given $field, if $field is null it will upload to first image option defined in array.
