@@ -69,7 +69,9 @@ class UserController extends Controller {
     }
 }
 ```
-> Make sure to run `php artisan storage:link` to see the images from public storage disk 
+> Make sure to run `php artisan storage:link` to see the images from public storage disk
+
+That's it, with above setup when ever you hit store method with post request and if `cover` or `avatar` named file is present on request() it will be auto uploaded.  
 
 ## Image Field options
 
