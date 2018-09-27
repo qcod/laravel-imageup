@@ -12,7 +12,7 @@ The `qcod/laravel-imageup` is a trait which gives you auto upload, resize and cr
 You can install the package via composer:
 
 ```bash
-$ composer require qcod/imageup
+$ composer require qcod/laravel-imageup
 ```
 
 The package will automatically register itself. In case you need to manually register it you can by adding it in `config/app.php` providers array:
