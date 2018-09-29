@@ -62,18 +62,18 @@ trait HasImageUploads
      */
     public function imageUrl($field = null)
     {
-        $imageFieldName = $this->getImageFieldName($field);
-        $imageFieldOptions = $this->getImageFieldOptions($imageFieldName);
+        $this->imageFieldName = $this->getImageFieldName($field);
+        $this->imageFieldOptions = $this->getImageFieldOptions($this->imageFieldName);
 
         // get the model attribute value
-        $attributeValue = $this->getAttributeValue($imageFieldName);
+        $attributeValue = $this->getAttributeValue($this->imageFieldName);
 
         // check for placeholder defined in option
-        $placeholderImage = array_get($imageFieldOptions, 'placeholder');
+        $placeholderImage = array_get($this->imageFieldOptions, 'placeholder');
 
         return (empty($attributeValue) && $placeholderImage)
             ? $placeholderImage
-            : asset('storage/' . $attributeValue);
+            : $this->getStorageDisk()->url($attributeValue);
     }
 
     /**
@@ -395,7 +395,11 @@ trait HasImageUploads
 
         $imagePath = $this->getImageUploadPath() . '/' . $imageFile->hashName();
 
-        $this->getStorageDisk()->put($imagePath, (string)$image->encode(null, $imageQuality));
+        $this->getStorageDisk()->put(
+            $imagePath,
+            (string)$image->encode(null, $imageQuality),
+            'public'
+        );
 
         // clean up
         $image->destroy();

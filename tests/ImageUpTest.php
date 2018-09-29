@@ -209,8 +209,8 @@ class ImageUpTest extends TestCase
 
         $this->assertEquals($user->avatar, 'uploads/my-avatar.png');
 
-        $this->assertEquals(asset('storage/uploads/my-avatar.png'), $user->imageUrl());
-        $this->assertEquals(asset('storage/uploads/my-avatar.png'), $user->imageUrl('avatar'));
+        $this->assertEquals('/storage/uploads/my-avatar.png', $user->imageUrl());
+        $this->assertEquals('/storage/uploads/my-avatar.png', $user->imageUrl('avatar'));
     }
 
     /**
