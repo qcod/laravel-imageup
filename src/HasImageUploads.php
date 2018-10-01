@@ -387,6 +387,9 @@ trait HasImageUploads
      */
     protected function saveImage($imageFile, $image)
     {
+        // Trigger before save hook
+        $this->triggerBeforeSaveHook($image);
+        
         $imageQuality = array_get(
             $this->imageFieldOptions,
             'resize_image_quality',
@@ -400,6 +403,9 @@ trait HasImageUploads
             (string)$image->encode(null, $imageQuality),
             'public'
         );
+        
+        // Trigger after save hook
+        $this->triggerAfterSaveHook($image);
 
         // clean up
         $image->destroy();
@@ -499,5 +505,57 @@ trait HasImageUploads
     protected function needResizing($imageFieldOptions)
     {
         return array_has($imageFieldOptions, 'width') || array_has($imageFieldOptions, 'height');
+    }
+
+    /**
+     * This will try to trigger the hook depending on the user definition.
+     *
+     * @param $hook
+     * @param $image
+     *
+     * @throws \Exception
+     */
+    protected function triggerHook($hook, $image)
+    {
+        if( is_callable($hook) )
+            $hook($image);
+        
+        // We assume that the user is passing the hook class name
+        if( is_string($hook) ) {
+            $instance = app($hook);
+            $instance->handle($image);
+        }
+    }
+
+    /**
+     * Trigger user defined before save hook.
+     *
+     * @param $image
+     *
+     * @return $this
+     * @throws \Exception
+     */
+    protected function triggerBeforeSaveHook($image)
+    {
+        if( isset($this->imageFieldOptions['before_save']) ) 
+            $this->triggerHook($this->imageFieldOptions['before_save'], $image);
+            
+        return $this;
+    }
+
+    /**
+     * Trigger user defined after save hook.
+     *
+     * @param $image
+     *
+     * @return $this
+     * @throws \Exception
+     */
+    protected function triggerAfterSaveHook($image)
+    {
+        if( isset($this->imageFieldOptions['after_save']) ) 
+            $this->triggerHook($this->imageFieldOptions['after_save'], $image);
+        
+        return $this;
     }
 }

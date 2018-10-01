@@ -405,4 +405,120 @@ class ImageUpTest extends TestCase
 
         Storage::disk('public')->assertExists('uploads/' . $image->hashName());
     }
+
+    /**
+     * it triggers before save hook from a class.
+     *
+     * @test
+     */
+    function it_triggers_before_save_hook_from_a_class()
+    {
+        $user = $this->createUser([], [
+            'avatar' => [
+                'width' => 100,
+                'height' => 100,
+                'before_save' => '\QCod\ImageUp\Tests\Hooks\ResizeToFiftyHook',
+            ]
+        ]);
+
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('avatar.jpg', 200, 200);
+        $user->uploadImage($image);
+
+        // The size of the image should be 50*50 defined in the hook instead of the ones defined on the user class
+        list($imageWidth, $imageHeight) = getimagesize(Storage::disk('public')->path('uploads/' . $image->hashName()));
+        $this->assertEquals(50, $imageWidth);
+        $this->assertEquals(50, $imageHeight);
+    }
+
+    /**
+     * it triggers before save hook from a callback.
+     *
+     * @test
+     */
+    function it_triggers_before_save_hook_from_a_callback()
+    {
+        $user = $this->createUser([], [
+            'avatar' => [
+                'width' => 100,
+                'height' => 100,
+                'before_save' => function($image) {
+                    $image->resize(50, 50);
+                },
+            ]
+        ]);
+
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('avatar.jpg', 200, 200);
+        $user->uploadImage($image);
+
+        // The size of the image should be 50*50 defined in the hook instead of the ones defined on the user class
+        list($imageWidth, $imageHeight) = getimagesize(Storage::disk('public')->path('uploads/' . $image->hashName()));
+        $this->assertEquals(50, $imageWidth);
+        $this->assertEquals(50, $imageHeight);
+    }
+
+    /**
+     * it triggers after save hook from a class.
+     *
+     * @test
+     */
+    function it_triggers_after_save_hook_from_a_class()
+    {
+        $user = $this->createUser([], [
+            'avatar' => [
+                'after_save' => '\QCod\ImageUp\Tests\Hooks\CopyImageHook',
+            ]
+        ]);
+
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('avatar.jpg', 200, 200);
+        $user->uploadImage($image);
+        
+        // Make sure that the copied image from the hook exists
+        Storage::disk('public')->assertExists('uploads/copy_from_hook.jpg');
+        
+        // Make sure that the uploaded and copied images are the same
+        $this->assertEquals(
+            md5(Storage::disk('public')->get('uploads/' . $image->hashName())),
+            md5(Storage::disk('public')->get('uploads/copy_from_hook.jpg'))
+        );
+    }
+
+    /**
+     * it triggers after save hook from a callback.
+     *
+     * @test
+     */
+    function it_triggers_after_save_hook_from_a_callback()
+    {
+        $user = $this->createUser([], [
+            'avatar' => [
+                'after_save' => function($image) {
+                    Storage::disk('public')->put(
+                        'uploads/copy_from_hook.jpg',
+                        (string)$image->encode(null, 80),
+                        'public'
+                    );
+                },
+            ]
+        ]);
+
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('avatar.jpg', 200, 200);
+        $user->uploadImage($image);
+        
+        // Make sure that the copied image from the hook exists
+        Storage::disk('public')->assertExists('uploads/copy_from_hook.jpg');
+        
+        // Make sure that the uploaded and copied images are the same
+        $this->assertEquals(
+            md5(Storage::disk('public')->get('uploads/' . $image->hashName())),
+            md5(Storage::disk('public')->get('uploads/copy_from_hook.jpg'))
+        );
+    }
 }
