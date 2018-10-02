@@ -246,7 +246,7 @@ It gives you `<img />` tag for a field.
 ### Hooks
 Hooks allow you to apply different type of customizations or any other logic that you want to take place before or after the image is saved.
 
-##### Definiton types
+##### Definition types
 You can define hooks by specifying a class name
 
 ```php
@@ -272,6 +272,9 @@ class BlurFilter {
 ```
 
 The class based hooks are resolved through laravel ioc container, which allows you to inject any dependencies through the constructor.
+
+> Keep in mind you will be getting resized image in `before` and `after` save hook handler if you have defined field option with `width` or `height`. 
+Sure you can get original image from `request()->file('avatar')` any time you want. 
 
 The second type off hook definition is callback hooks.
 ```php
