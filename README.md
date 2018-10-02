@@ -125,7 +125,13 @@ class User extends Model {
             'auto_upload' => false,
             
             // if request file is don't have same name, default will be the field name
-            'file_input' => 'photo'
+            'file_input' => 'photo',
+            
+            // a hook that is triggered before the image is saved
+            'before_save' => BlurFilter::class,
+            
+            // a hook that is triggered after the image is saved
+            'after_save' => CreateWatermarkImage::class
         ],
         'cover' => [
             //...    
@@ -237,6 +243,83 @@ It gives you `<img />` tag for a field.
 <!-- <img src="http://www.example.com/storage/uploads/iGqUEbCPTv7EuqkndE34CNitlJbFhuxEWmgN9JIh.jpeg" class="float-left mr-3 /> -->
 ```
 
+### Hooks
+Hooks allow you to apply different type of customizations or any other logic that you want to take place before or after the image is saved.
+
+##### Definiton types
+You can define hooks by specifying a class name
+
+```php
+protected static $imageFields = [
+    'avatar' => [
+        'before_save' => BlurFilter::class,
+    ],
+    'cover' => [
+        //...    
+    ]
+];
+```
+
+The hook class must have a method named `handle` that will be called when the hook is triggered.
+An instance of the intervention image will be passed to the `handle` method.
+
+```php
+class BlurFilter {
+    public function handle($image) {
+        $image->blur(10);
+    }
+}
+```
+
+The class based hooks are resolved through laravel ioc container, which allows you to inject any dependencies through the constructor.
+
+The second type off hook definition is callback hooks.
+```php
+$user->setImagesField([
+    'avatar' => [
+        'before_save' => function($image) {
+            $image->blur(10);
+        },
+    ],
+    'cover' => [
+        //...    
+    ]
+]);
+```
+
+The callback will receive the intervention image instance argument as well.
+
+##### Hook types
+There are two types of hooks a `before_save` and `after_save` hooks.
+
+The `before_save` hook is called just before the image is saved to the disk.
+Any changes made to the intervention image instance within the hook will be applied to the output image.
+
+```php
+$user->setImagesField([
+    'avatar' => [
+        'width' => 100,
+        'height' => 100,
+        'before_save' => function($image) {
+            // The image will be 50 * 50, this will override the 100 * 100 
+            $image->resize(50, 50);
+        },
+    ]
+]);
+```
+
+The `after_save` hook is called right after the image was saved to the disk.
+
+```php
+$user->setImagesField([
+    'logo' => [
+        'after_save' => function($image) {
+            // Create a watermark image and save it
+        },
+    ]
+]);
+```
+
 ### Config file
 
 ```php
@@ -294,6 +377,7 @@ If you discover any security related issues, please email saquibwebk@gmail.com i
 
 ### Credits
 - [Mohd Saqueib Ansari](https://github.com/saqueib)
+- [Melek Rebai aka shadoWalker89](https://github.com/shadoWalker89)
 
 ### About QCode.in
 QCode.in (https://www.qcode.in) is blog by [Saqueib](https://github.com/saqueib) which covers All about Full Stack Web Development.
