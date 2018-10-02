@@ -101,7 +101,7 @@ trait HasImageUploads
      *
      * @param $imageFile
      * @param null $field
-     * @throws InvalidImageFieldException
+     * @throws InvalidImageFieldException|\Exception
      */
     public function uploadImage($imageFile, $field = null)
     {
@@ -384,12 +384,13 @@ trait HasImageUploads
      * @param $imageFile
      * @param $image
      * @return string
+     * @throws \Exception
      */
     protected function saveImage($imageFile, $image)
     {
         // Trigger before save hook
         $this->triggerBeforeSaveHook($image);
-        
+
         $imageQuality = array_get(
             $this->imageFieldOptions,
             'resize_image_quality',
@@ -403,7 +404,7 @@ trait HasImageUploads
             (string)$image->encode(null, $imageQuality),
             'public'
         );
-        
+
         // Trigger after save hook
         $this->triggerAfterSaveHook($image);
 
@@ -461,6 +462,7 @@ trait HasImageUploads
      * Auto image upload handler
      *
      * @throws InvalidImageFieldException
+     * @throws \Exception
      */
     protected function autoUpload()
     {
@@ -517,11 +519,12 @@ trait HasImageUploads
      */
     protected function triggerHook($hook, $image)
     {
-        if( is_callable($hook) )
+        if (is_callable($hook)) {
             $hook($image);
-        
+        }
+
         // We assume that the user is passing the hook class name
-        if( is_string($hook) ) {
+        if (is_string($hook)) {
             $instance = app($hook);
             $instance->handle($image);
         }
@@ -537,9 +540,10 @@ trait HasImageUploads
      */
     protected function triggerBeforeSaveHook($image)
     {
-        if( isset($this->imageFieldOptions['before_save']) ) 
+        if (isset($this->imageFieldOptions['before_save'])) {
             $this->triggerHook($this->imageFieldOptions['before_save'], $image);
-            
+        }
+
         return $this;
     }
 
@@ -553,9 +557,10 @@ trait HasImageUploads
      */
     protected function triggerAfterSaveHook($image)
     {
-        if( isset($this->imageFieldOptions['after_save']) ) 
+        if (isset($this->imageFieldOptions['after_save'])) {
             $this->triggerHook($this->imageFieldOptions['after_save'], $image);
-        
+        }
+
         return $this;
     }
 }
