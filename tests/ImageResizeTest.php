@@ -7,8 +7,8 @@ use QCod\ImageUp\Tests\Models\User;
 
 class ImageResizeTest extends TestCase
 {
-    protected  $testImage = __DIR__ . '/images/test1200x1200.png';
-    protected  $newImage;
+    protected $testImage = __DIR__ . '/images/test1200x1200.png';
+    protected $newImage;
     protected $user;
 
     protected function setUp()
@@ -26,7 +26,7 @@ class ImageResizeTest extends TestCase
     {
         parent::tearDown();
 
-        if( $this->newImage ) {
+        if ($this->newImage) {
             $this->newImage->destroy();
         }
     }
@@ -37,7 +37,7 @@ class ImageResizeTest extends TestCase
     *
     * @test
     */
-    function it_resize_image_based_on_width_given()
+    public function it_resize_image_based_on_width_given()
     {
         $this->newImage = $this->user->resizeImage($this->testImage, ['width' => 300]);
 
@@ -49,7 +49,7 @@ class ImageResizeTest extends TestCase
     *
     * @test
     */
-    function it_resize_image_by_height()
+    public function it_resize_image_by_height()
     {
         $this->newImage = $this->user->resizeImage($this->testImage, ['height' => 200]);
 
@@ -61,14 +61,16 @@ class ImageResizeTest extends TestCase
     *
     * @test
     */
-    function it_crops_image_in_given_width_and_height()
+    public function it_crops_image_in_given_width_and_height()
     {
-        $this->newImage = $this->user->resizeImage($this->testImage,
+        $this->newImage = $this->user->resizeImage(
+            $this->testImage,
             [
                 'width' => 150,
                 'height' => 150,
                 'crop' => true
-            ]);
+            ]
+        );
 
         $this->assertEquals(150, $this->newImage->width());
         $this->assertEquals(150, $this->newImage->height());
@@ -79,14 +81,16 @@ class ImageResizeTest extends TestCase
      *
      * @test
      */
-    function it_crops_in_x_and_y_if_crop_is_set_to_array_of_coordinates()
+    public function it_crops_in_x_and_y_if_crop_is_set_to_array_of_coordinates()
     {
-        $this->newImage = $this->user->resizeImage($this->testImage,
+        $this->newImage = $this->user->resizeImage(
+            $this->testImage,
             [
                 'width' => 100,
                 'height' => 100,
                 'crop' => [25, 10]
-            ]);
+            ]
+        );
 
         $this->assertEquals(100, $this->newImage->width());
         $this->assertEquals(100, $this->newImage->height());
@@ -97,14 +101,16 @@ class ImageResizeTest extends TestCase
     *
     * @test
     */
-    function it_can_override_the_crop_x_and_y_coordinates()
+    public function it_can_override_the_crop_x_and_y_coordinates()
     {
-        $this->newImage = $this->user->cropTo(10, 0)->resizeImage($this->testImage,
+        $this->newImage = $this->user->cropTo(10, 0)->resizeImage(
+            $this->testImage,
             [
                 'width' => 100,
                 'height' => 100,
                 'crop' => [25, 10]
-            ]);
+            ]
+        );
 
         $this->assertEquals(100, $this->newImage->width());
         $this->assertEquals(100, $this->newImage->height());
@@ -115,7 +121,7 @@ class ImageResizeTest extends TestCase
     *
     * @test
     */
-    function it_do_not_resize_if_width_and_height_are_not_provided()
+    public function it_do_not_resize_if_width_and_height_are_not_provided()
     {
         $this->newImage = $this->user->resizeImage($this->testImage, []);
 

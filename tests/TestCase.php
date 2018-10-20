@@ -29,7 +29,6 @@ abstract class TestCase extends OrchestraTestCase
             Route::post('test/users', 'UserController@store');
             Route::put('test/users/{id}', 'UserController@update');
         });
-
     }
 
     /**
@@ -67,7 +66,7 @@ abstract class TestCase extends OrchestraTestCase
     {
         $user = new User();
 
-        if( is_null($imageFields) ) {
+        if (is_null($imageFields)) {
             $fieldOption = [
                 'avatar' => ['width' => 200],
                 'cover' => ['width' => 400, 'height' => 400]
