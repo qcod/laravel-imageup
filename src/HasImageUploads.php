@@ -217,13 +217,16 @@ trait HasImageUploads
     {
         // get first option if no field provided
         if (is_null($field)) {
-            $options = array_first($this->getDefinedImageFields());
+            $imagesFields = $this->getDefinedImageFields();
 
-            if (!$options) {
+            if (!$imagesFields) {
                 throw new InvalidImageFieldException(
                     'No image fields are defined in $imageFields array on model.'
                 );
             }
+
+            $fieldKey = array_first(array_keys($imagesFields));
+            $options = is_int($fieldKey) ? [] : array_first($imagesFields);
 
             return $options;
         }
@@ -235,7 +238,7 @@ trait HasImageUploads
             );
         }
 
-        return array_get($this->getDefinedImageFields(), $field);
+        return array_get($this->getDefinedImageFields(), $field, []);
     }
 
     /**
@@ -262,9 +265,13 @@ trait HasImageUploads
             return $field;
         }
 
+        $imagesFields = $this->getDefinedImageFields();
+        $fieldKey = array_first(array_keys($imagesFields));
+        
         // return first field name
-        $fieldKey = array_keys($this->getDefinedImageFields());
-        return array_first($fieldKey);
+        return is_int($fieldKey)
+            ? $imagesFields[$fieldKey]
+            : $fieldKey;
     }
 
     /**
@@ -466,21 +473,26 @@ trait HasImageUploads
      */
     protected function autoUpload()
     {
-        foreach ($this->getDefinedImageFields() as $field => $options) {
+        foreach ($this->getDefinedImageFields() as $key => $val) {
+            $field = is_numeric($key) ? $val : $key;
+            $options = array_wrap($val);
+
             // check if global upload is allowed, then in override in option
             $autoUploadAllowed = array_get($options, 'auto_upload', $this->canAutoUploadImages());
 
-            if (is_array($options) && count($options) && $autoUploadAllowed) {
-                // get the input file name
-                $requestFileName = array_get($options, 'file_input', $field);
+            if (! $autoUploadAllowed) {
+                continue;
+            }
 
-                // if request has the file upload it
-                if (request()->hasFile($requestFileName)) {
-                    $this->uploadImage(
-                        request()->file($requestFileName),
-                        $field
-                    );
-                }
+            // get the input file name
+            $requestFileName = array_get($options, 'file_input', $field);
+            
+            // if request has the file upload it
+            if (request()->hasFile($requestFileName)) {
+                $this->uploadImage(
+                    request()->file($requestFileName),
+                    $field
+                );
             }
         }
     }

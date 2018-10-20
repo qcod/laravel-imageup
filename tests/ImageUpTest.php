@@ -142,6 +142,26 @@ class ImageUpTest extends TestCase
     }
 
     /**
+     * it returns first field without any options
+     *
+     * @test
+     */
+    public function it_returns_first_field_without_any_options()
+    {
+        $user = new User();
+        $fieldOption = [
+            'avatar',
+            'logo' => ['width' => 300, 'height' => 300]
+        ];
+        $user->setImagesField($fieldOption);
+
+        $this->assertEquals('avatar', $user->getImageFieldName());
+        $this->assertEquals('avatar', $user->getImageFieldName('avatar'));
+        $this->assertSame([], $user->getImageFieldOptions());
+        $this->assertSame([], $user->getImageFieldOptions('avatar'));
+    }
+    
+    /**
      * it uploads image and saves in db
      *
      * @test
@@ -400,6 +420,117 @@ class ImageUpTest extends TestCase
         $this->post('test/users', $payload)->assertStatus(200);
 
         Storage::disk('public')->assertExists('uploads/' . $image->hashName());
+    }
+
+    /**
+     * it auto upload images
+     *
+     * @test
+     */
+    public function it_auto_upload_images()
+    {
+        Storage::fake('public');
+        
+        $cover = UploadedFile::fake()->image('cover.jpg');
+        $avatar = UploadedFile::fake()->image('avatar.jpg');
+        
+        $data = [
+            'name' => 'Saqueib',
+            'email' => 'me@example.com',
+            'password' => 'secret',
+            'avatar' => $avatar,
+            'cover' => $cover,
+        ];
+
+        $response = $this->post('/test/users', $data);
+        $user = $response->original;
+
+        $response->assertStatus(200);
+
+        // Assert the file was stored...
+        Storage::disk('public')->assertExists('uploads/' . $avatar->hashName());
+        Storage::disk('public')->assertExists('uploads/' . $cover->hashName());
+
+
+        $this->assertNotNull($user->avatar);
+        $this->assertNotNull($user->cover);
+
+        $this->assertEquals('uploads/' . $avatar->hashName(), $user->avatar);
+        $this->assertEquals('uploads/' . $cover->hashName(), $user->cover);
+    }
+
+    /**
+     * it auto upload images without options
+     *
+     * @test
+     */
+    public function it_auto_upload_images_without_options()
+    {
+        Storage::fake('public');
+        
+        $cover = UploadedFile::fake()->image('cover.jpg');
+        $avatar = UploadedFile::fake()->image('avatar.jpg');
+        
+        $data = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'password' => 'secret',
+            'avatar' => $avatar,
+            'cover' => $cover,
+        ];
+
+        $response = $this->post('/test/users/uploads/images-without-options', $data);
+        $user = $response->original;
+
+        $response->assertStatus(200);
+
+        // Assert the file was stored...
+        Storage::disk('public')->assertExists('uploads/' . $avatar->hashName());
+        Storage::disk('public')->assertExists('uploads/' . $cover->hashName());
+
+
+        $this->assertNotNull($user->avatar);
+        $this->assertNotNull($user->cover);
+
+        $this->assertEquals('uploads/' . $avatar->hashName(), $user->avatar);
+        $this->assertEquals('uploads/' . $cover->hashName(), $user->cover);
+    }
+
+    /**
+     * it auto upload images with mixed options
+     *
+     * @test
+     */
+    public function it_auto_upload_images_with_mixed_options()
+    {
+        Storage::fake('public');
+        
+        $cover = UploadedFile::fake()->image('cover.jpg');
+        $avatar = UploadedFile::fake()->image('avatar.jpg');
+        
+        $data = [
+            'name' => 'Foo Bar',
+            'email' => 'foo@bar.com',
+            'password' => 'secret',
+            'avatar' => $avatar,
+            'cover' => $cover,
+        ];
+
+        $response = $this->post('/test/users/uploads/images-with-mixed-options', $data);
+        $user = $response->original;
+
+        $response->assertStatus(200);
+
+        // Assert the file was stored...
+        Storage::disk('public')->assertExists('uploads/' . $avatar->hashName());
+        Storage::disk('public')->assertMissing('uploads/' . $cover->hashName());
+
+
+        $this->assertNotNull($user->avatar);
+        $this->assertNull($user->cover);
+
+        $this->assertEquals('uploads/' . $avatar->hashName(), $user->avatar);
+        $this->assertNotEquals('uploads/' . $cover->hashName(), $user->cover);
     }
 
     /**
