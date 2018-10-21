@@ -381,6 +381,7 @@ If you discover any security related issues, please email saquibweb@gmail.com in
 ### Credits
 - [Mohd Saqueib Ansari](https://github.com/saqueib)
 - [Melek Rebai aka shadoWalker89](https://github.com/shadoWalker89)
+- [João Roberto P. Borges](https://github.com/joaorobertopb)
 
 ### About QCode.in
 QCode.in (https://www.qcode.in) is blog by [Saqueib](https://github.com/saqueib) which covers All about Full Stack Web Development.
