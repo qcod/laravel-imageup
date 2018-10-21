@@ -15,7 +15,7 @@ class ImageUpServiceProvider extends ServiceProvider
     {
         $this->publishes([
             __DIR__.'/../config/imageup.php' => config_path('imageup.php')
-        ]);
+        ], 'config');
 
         $this->mergeConfigFrom(
             __DIR__.'/../config/imageup.php',
