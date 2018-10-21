@@ -1,5 +1,7 @@
 <?php
+
 namespace QCod\ImageUp\Tests\Models;
+
 use Illuminate\Database\Eloquent\Model;
 use QCod\ImageUp\HasImageUploads;
 

@@ -23,10 +23,9 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_gets_image_field_options()
+    public function it_gets_image_field_options()
     {
-        $user = new class() extends User
-        {
+        $user = new class() extends User {
             use HasImageUploads;
 
             protected static $imageFields = ['avatar' => [
@@ -50,7 +49,7 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_throws_exception_if_image_field_not_found()
+    public function it_throws_exception_if_image_field_not_found()
     {
         $user = new User();
 
@@ -63,7 +62,7 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_sets_image_field_with_options()
+    public function it_sets_image_field_with_options()
     {
         $user = new User();
 
@@ -78,7 +77,7 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_sets_image_fields_with_mixed_option_and_without_options()
+    public function it_sets_image_fields_with_mixed_option_and_without_options()
     {
         $user = new User();
 
@@ -95,7 +94,7 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_sets_image_fields_without_any_options()
+    public function it_sets_image_fields_without_any_options()
     {
         $user = new User();
 
@@ -112,7 +111,7 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_returns_first_field_if_no_key_provided()
+    public function it_returns_first_field_if_no_key_provided()
     {
         $user = new User();
         $fieldOption = [
@@ -129,7 +128,7 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_returns_field_name_of_first_field()
+    public function it_returns_field_name_of_first_field()
     {
         $user = new User();
         $fieldOption = [
@@ -143,11 +142,31 @@ class ImageUpTest extends TestCase
     }
 
     /**
+     * it returns first field without any options
+     *
+     * @test
+     */
+    public function it_returns_first_field_without_any_options()
+    {
+        $user = new User();
+        $fieldOption = [
+            'avatar',
+            'logo' => ['width' => 300, 'height' => 300]
+        ];
+        $user->setImagesField($fieldOption);
+
+        $this->assertEquals('avatar', $user->getImageFieldName());
+        $this->assertEquals('avatar', $user->getImageFieldName('avatar'));
+        $this->assertSame([], $user->getImageFieldOptions());
+        $this->assertSame([], $user->getImageFieldOptions('avatar'));
+    }
+    
+    /**
      * it uploads image and saves in db
      *
      * @test
      */
-    function it_uploads_image_and_saves_in_db()
+    public function it_uploads_image_and_saves_in_db()
     {
         $user = $this->createUser();
         Storage::fake('public');
@@ -168,7 +187,7 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_uploads_image_by_field_name()
+    public function it_uploads_image_by_field_name()
     {
         $user = $this->createUser();
         $user->setImagesField(['cover' => ['width' => 100]]);
@@ -190,13 +209,12 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_gives_image_url_if_image_saved_in_db()
+    public function it_gives_image_url_if_image_saved_in_db()
     {
-        $user = new class extends User
-        {
+        $user = new class extends User {
             use HasImageUploads;
 
-            static $imageFields = [
+            public static $imageFields = [
                 'avatar' => ['placeholder' => '/images/cover-placeholder.png']
             ];
         };
@@ -218,13 +236,12 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_gives_placeholder_image_url_if_file_has_no_image_and_placeholder_option_is_defined()
+    public function it_gives_placeholder_image_url_if_file_has_no_image_and_placeholder_option_is_defined()
     {
-        $user = new class extends User
-        {
+        $user = new class extends User {
             use HasImageUploads;
 
-            static $imageFields = [
+            public static $imageFields = [
                 'cover' => ['placeholder' => '/images/cover-placeholder.png']
             ];
         };
@@ -245,13 +262,12 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_validate_the_uploaded_file_using_provided_rules()
+    public function it_validate_the_uploaded_file_using_provided_rules()
     {
-        $user = new class extends User
-        {
+        $user = new class extends User {
             use HasImageUploads;
 
-            static $imageFields = [
+            public static $imageFields = [
                 'avatar' => [
                     'rules' => 'required|image'
                 ]
@@ -281,7 +297,7 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_uploads_and_resize_image_in_proportion_if_crop_is_not_set()
+    public function it_uploads_and_resize_image_in_proportion_if_crop_is_not_set()
     {
         $user = $this->createUser([], [
             'avatar' => [
@@ -310,7 +326,7 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_upload_and_resize_image_by_given_height()
+    public function it_upload_and_resize_image_by_given_height()
     {
         $user = $this->createUser([], [
             'avatar' => [
@@ -338,7 +354,7 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_uses_disk_specified_in_field_option()
+    public function it_uses_disk_specified_in_field_option()
     {
         $user = $this->createUser([], [
             'avatar' => [
@@ -363,7 +379,7 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_uses_path_specified_in_field_option()
+    public function it_uses_path_specified_in_field_option()
     {
         $user = $this->createUser([], [
             'avatar' => [
@@ -389,7 +405,7 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_auto_uploads_images_if_config_is_set_do_it()
+    public function it_auto_uploads_images_if_config_is_set_do_it()
     {
         Storage::fake('public');
         $image = UploadedFile::fake()->image('avatar.jpg')->size(100);
@@ -407,11 +423,122 @@ class ImageUpTest extends TestCase
     }
 
     /**
+     * it auto upload images
+     *
+     * @test
+     */
+    public function it_auto_upload_images()
+    {
+        Storage::fake('public');
+        
+        $cover = UploadedFile::fake()->image('cover.jpg');
+        $avatar = UploadedFile::fake()->image('avatar.jpg');
+        
+        $data = [
+            'name' => 'Saqueib',
+            'email' => 'me@example.com',
+            'password' => 'secret',
+            'avatar' => $avatar,
+            'cover' => $cover,
+        ];
+
+        $response = $this->post('/test/users', $data);
+        $user = $response->original;
+
+        $response->assertStatus(200);
+
+        // Assert the file was stored...
+        Storage::disk('public')->assertExists('uploads/' . $avatar->hashName());
+        Storage::disk('public')->assertExists('uploads/' . $cover->hashName());
+
+
+        $this->assertNotNull($user->avatar);
+        $this->assertNotNull($user->cover);
+
+        $this->assertEquals('uploads/' . $avatar->hashName(), $user->avatar);
+        $this->assertEquals('uploads/' . $cover->hashName(), $user->cover);
+    }
+
+    /**
+     * it auto upload images without options
+     *
+     * @test
+     */
+    public function it_auto_upload_images_without_options()
+    {
+        Storage::fake('public');
+        
+        $cover = UploadedFile::fake()->image('cover.jpg');
+        $avatar = UploadedFile::fake()->image('avatar.jpg');
+        
+        $data = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'password' => 'secret',
+            'avatar' => $avatar,
+            'cover' => $cover,
+        ];
+
+        $response = $this->post('/test/users/uploads/images-without-options', $data);
+        $user = $response->original;
+
+        $response->assertStatus(200);
+
+        // Assert the file was stored...
+        Storage::disk('public')->assertExists('uploads/' . $avatar->hashName());
+        Storage::disk('public')->assertExists('uploads/' . $cover->hashName());
+
+
+        $this->assertNotNull($user->avatar);
+        $this->assertNotNull($user->cover);
+
+        $this->assertEquals('uploads/' . $avatar->hashName(), $user->avatar);
+        $this->assertEquals('uploads/' . $cover->hashName(), $user->cover);
+    }
+
+    /**
+     * it auto upload images with mixed options
+     *
+     * @test
+     */
+    public function it_auto_upload_images_with_mixed_options()
+    {
+        Storage::fake('public');
+        
+        $cover = UploadedFile::fake()->image('cover.jpg');
+        $avatar = UploadedFile::fake()->image('avatar.jpg');
+        
+        $data = [
+            'name' => 'Foo Bar',
+            'email' => 'foo@bar.com',
+            'password' => 'secret',
+            'avatar' => $avatar,
+            'cover' => $cover,
+        ];
+
+        $response = $this->post('/test/users/uploads/images-with-mixed-options', $data);
+        $user = $response->original;
+
+        $response->assertStatus(200);
+
+        // Assert the file was stored...
+        Storage::disk('public')->assertExists('uploads/' . $avatar->hashName());
+        Storage::disk('public')->assertMissing('uploads/' . $cover->hashName());
+
+
+        $this->assertNotNull($user->avatar);
+        $this->assertNull($user->cover);
+
+        $this->assertEquals('uploads/' . $avatar->hashName(), $user->avatar);
+        $this->assertNotEquals('uploads/' . $cover->hashName(), $user->cover);
+    }
+
+    /**
      * it triggers before save hook from a class.
      *
      * @test
      */
-    function it_triggers_before_save_hook_from_a_class()
+    public function it_triggers_before_save_hook_from_a_class()
     {
         $user = $this->createUser([], [
             'avatar' => [
@@ -437,13 +564,13 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_triggers_before_save_hook_from_a_callback()
+    public function it_triggers_before_save_hook_from_a_callback()
     {
         $user = $this->createUser([], [
             'avatar' => [
                 'width' => 100,
                 'height' => 100,
-                'before_save' => function($image) {
+                'before_save' => function ($image) {
                     $image->resize(50, 50);
                 },
             ]
@@ -465,7 +592,7 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_triggers_after_save_hook_from_a_class()
+    public function it_triggers_after_save_hook_from_a_class()
     {
         $user = $this->createUser([], [
             'avatar' => [
@@ -493,11 +620,11 @@ class ImageUpTest extends TestCase
      *
      * @test
      */
-    function it_triggers_after_save_hook_from_a_callback()
+    public function it_triggers_after_save_hook_from_a_callback()
     {
         $user = $this->createUser([], [
             'avatar' => [
-                'after_save' => function($image) {
+                'after_save' => function ($image) {
                     Storage::disk('public')->put(
                         'uploads/copy_from_hook.jpg',
                         (string)$image->encode(null, 80),

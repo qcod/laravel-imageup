@@ -18,7 +18,8 @@ class ImageUpServiceProvider extends ServiceProvider
         ]);
 
         $this->mergeConfigFrom(
-            __DIR__.'/../config/imageup.php', 'imageup'
+            __DIR__.'/../config/imageup.php',
+            'imageup'
         );
     }
 
@@ -29,6 +30,5 @@ class ImageUpServiceProvider extends ServiceProvider
      */
     public function register()
     {
-
     }
 }

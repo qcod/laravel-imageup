@@ -27,9 +27,9 @@ abstract class TestCase extends OrchestraTestCase
         // define some route to test auto upload
         Route::group(['namespace' => 'QCod\ImageUp\Tests\Controllers'], function () {
             Route::post('test/users', 'UserController@store');
-            Route::put('test/users/{id}', 'UserController@update');
+            Route::post('test/users/uploads/images-without-options', 'UserController@storeImagesWithoutOptions');
+            Route::post('test/users/uploads/images-with-mixed-options', 'UserController@storeImagesWithMixedOptions');
         });
-
     }
 
     /**
@@ -67,9 +67,9 @@ abstract class TestCase extends OrchestraTestCase
     {
         $user = new User();
 
-        if( is_null($imageFields) ) {
+        if (is_null($imageFields)) {
             $fieldOption = [
-                'avatar' => ['width' => 200],
+                'avatar',
                 'cover' => ['width' => 400, 'height' => 400]
             ];
             $user->setImagesField($fieldOption);
