@@ -172,14 +172,14 @@ class ImageUpTest extends TestCase
         Storage::fake('public');
         $file = UploadedFile::fake()->image('avatar.jpg');
 
-        $this->assertNull($user->avatar);
+        $this->assertNull($user->getOriginal('avatar'));
 
         // it should upload first avatar image
         $user->uploadImage($file);
 
         // Assert the file was stored...
         Storage::disk('public')->assertExists('uploads/' . $file->hashName());
-        $this->assertEquals('uploads/' . $file->hashName(), $user->fresh()->avatar);
+        $this->assertEquals('uploads/' . $file->hashName(), $user->fresh()->getOriginal('avatar'));
     }
 
     /**
@@ -194,14 +194,14 @@ class ImageUpTest extends TestCase
         Storage::fake('public');
         $file = UploadedFile::fake()->image('avatar.jpg');
 
-        $this->assertNull($user->avatar);
+        $this->assertNull($user->getOriginal('avatar'));
 
         // it should upload first avatar image
         $user->uploadImage($file, 'cover');
 
         // Assert the file was stored...
         Storage::disk('public')->assertExists('uploads/' . $file->hashName());
-        $this->assertEquals('uploads/' . $file->hashName(), $user->fresh()->cover);
+        $this->assertEquals('uploads/' . $file->hashName(), $user->fresh()->getOriginal('cover'));
     }
 
     /**
@@ -225,7 +225,7 @@ class ImageUpTest extends TestCase
             'avatar' => 'uploads/my-avatar.png'
         ])->save();
 
-        $this->assertEquals($user->avatar, 'uploads/my-avatar.png');
+        $this->assertEquals($user->getOriginal('avatar'), 'uploads/my-avatar.png');
 
         $this->assertEquals('/storage/uploads/my-avatar.png', $user->imageUrl());
         $this->assertEquals('/storage/uploads/my-avatar.png', $user->imageUrl('avatar'));
@@ -252,7 +252,7 @@ class ImageUpTest extends TestCase
             'avatar' => '/uploads/my-avatar.png'
         ])->save();
 
-        $this->assertNull($user->cover);
+        $this->assertNull($user->getOriginal('cover'));
         $this->assertEquals('/images/cover-placeholder.png', $user->imageUrl());
         $this->assertEquals('/images/cover-placeholder.png', $user->imageUrl('cover'));
     }
@@ -280,16 +280,16 @@ class ImageUpTest extends TestCase
         // it should not upload image
         $this->expectException(ValidationException::class);
         $user->uploadImage($doc);
-        $this->assertNull($user->avatar);
+        $this->assertNull($user->getOriginal('avatar'));
 
         // it should upload image
         $image = UploadedFile::fake()->image('avatar.jpg');
-        $this->assertNull($user->avatar);
+        $this->assertNull($user->getOriginal('avatar'));
         $user->uploadImage($image);
 
         // Assert the file was stored...
         Storage::disk('public')->assertExists('uploads/' . $image->hashName());
-        $this->assertEquals('uploads/' . $image->hashName(), $user->fresh()->avatar);
+        $this->assertEquals('uploads/' . $image->hashName(), $user->fresh()->getOriginal('avatar'));
     }
 
     /**
@@ -309,12 +309,12 @@ class ImageUpTest extends TestCase
         Storage::fake('public');
 
         $image = UploadedFile::fake()->image('avatar.jpg', 400, 500);
-        $this->assertNull($user->avatar);
+        $this->assertNull($user->getOriginal('avatar'));
         $user->uploadImage($image);
 
         // Assert the file was stored...
         Storage::disk('public')->assertExists('uploads/' . $image->hashName());
-        $this->assertEquals('uploads/' . $image->hashName(), $user->fresh()->avatar);
+        $this->assertEquals('uploads/' . $image->hashName(), $user->fresh()->getOriginal('avatar'));
 
         list($imageWidth, $imageHeight) = getimagesize(Storage::disk('public')->path('uploads/' . $image->hashName()));
         $this->assertEquals(200, $imageWidth);
@@ -337,12 +337,12 @@ class ImageUpTest extends TestCase
         Storage::fake('public');
 
         $image = UploadedFile::fake()->image('avatar.jpg', 400, 500);
-        $this->assertNull($user->avatar);
+        $this->assertNull($user->getOriginal('avatar'));
         $user->uploadImage($image);
 
         // Assert the file was stored...
         Storage::disk('public')->assertExists('uploads/' . $image->hashName());
-        $this->assertEquals('uploads/' . $image->hashName(), $user->fresh()->avatar);
+        $this->assertEquals('uploads/' . $image->hashName(), $user->fresh()->getOriginal('avatar'));
 
         list($imageWidth, $imageHeight) = getimagesize(Storage::disk('public')->path('uploads/' . $image->hashName()));
         $this->assertNotEquals(400, $imageWidth);
@@ -366,12 +366,12 @@ class ImageUpTest extends TestCase
         Storage::fake('local');
 
         $image = UploadedFile::fake()->image('avatar.jpg');
-        $this->assertNull($user->avatar);
+        $this->assertNull($user->getOriginal('avatar'));
         $user->uploadImage($image);
 
         // Assert the file was stored...
         Storage::disk('local')->assertExists('uploads/' . $image->hashName());
-        $this->assertEquals('uploads/' . $image->hashName(), $user->fresh()->avatar);
+        $this->assertEquals('uploads/' . $image->hashName(), $user->fresh()->getOriginal('avatar'));
     }
 
     /**
@@ -391,13 +391,13 @@ class ImageUpTest extends TestCase
         Storage::fake('public');
 
         $image = UploadedFile::fake()->image('avatar.jpg');
-        $this->assertNull($user->avatar);
+        $this->assertNull($user->getOriginal('avatar'));
         $user->uploadImage($image);
 
         // Assert the file was stored...
         Storage::disk('public')->assertExists('avatar/' . $image->hashName());
         Storage::disk('public')->assertMissing('uploads/' . $image->hashName());
-        $this->assertEquals('avatar/' . $image->hashName(), $user->fresh()->avatar);
+        $this->assertEquals('avatar/' . $image->hashName(), $user->fresh()->getOriginal('avatar'));
     }
 
     /**
@@ -452,11 +452,11 @@ class ImageUpTest extends TestCase
         Storage::disk('public')->assertExists('uploads/' . $cover->hashName());
 
 
-        $this->assertNotNull($user->avatar);
-        $this->assertNotNull($user->cover);
+        $this->assertNotNull($user->getOriginal('avatar'));
+        $this->assertNotNull($user->getOriginal('cover'));
 
-        $this->assertEquals('uploads/' . $avatar->hashName(), $user->avatar);
-        $this->assertEquals('uploads/' . $cover->hashName(), $user->cover);
+        $this->assertEquals('uploads/' . $avatar->hashName(), $user->getOriginal('avatar'));
+        $this->assertEquals('uploads/' . $cover->hashName(), $user->getOriginal('cover'));
     }
 
     /**
@@ -489,11 +489,11 @@ class ImageUpTest extends TestCase
         Storage::disk('public')->assertExists('uploads/' . $cover->hashName());
 
 
-        $this->assertNotNull($user->avatar);
-        $this->assertNotNull($user->cover);
+        $this->assertNotNull($user->getOriginal('avatar'));
+        $this->assertNotNull($user->getOriginal('cover'));
 
-        $this->assertEquals('uploads/' . $avatar->hashName(), $user->avatar);
-        $this->assertEquals('uploads/' . $cover->hashName(), $user->cover);
+        $this->assertEquals('uploads/' . $avatar->hashName(), $user->getOriginal('avatar'));
+        $this->assertEquals('uploads/' . $cover->hashName(), $user->getOriginal('cover'));
     }
 
     /**
@@ -526,11 +526,11 @@ class ImageUpTest extends TestCase
         Storage::disk('public')->assertMissing('uploads/' . $cover->hashName());
 
 
-        $this->assertNotNull($user->avatar);
-        $this->assertNull($user->cover);
+        $this->assertNotNull($user->getOriginal('avatar'));
+        $this->assertNull($user->getOriginal('cover'));
 
-        $this->assertEquals('uploads/' . $avatar->hashName(), $user->avatar);
-        $this->assertNotEquals('uploads/' . $cover->hashName(), $user->cover);
+        $this->assertEquals('uploads/' . $avatar->hashName(), $user->getOriginal('avatar'));
+        $this->assertNotEquals('uploads/' . $cover->hashName(), $user->getOriginal('cover'));
     }
 
     /**
@@ -647,5 +647,79 @@ class ImageUpTest extends TestCase
             md5(Storage::disk('public')->get('uploads/' . $image->hashName())),
             md5(Storage::disk('public')->get('uploads/copy_from_hook.jpg'))
         );
+    }
+
+    /**
+     * it gives correct value when model has mutator method
+     *
+     * @test
+     */
+    public function it_gives_correct_value_when_model_has_mutator_method()
+    {
+        $user = new class extends User {
+            use HasImageUploads;
+
+            public static $imageFields = [
+                'avatar'
+            ];
+
+            public function getAvatarAttribute($value)
+            {
+                return $this->imageUrl('avatar');
+            }
+        };
+        $user->forceFill([
+            'name' => 'John',
+            'email' => 'John@email.com',
+            'password' => 'secret',
+            'avatar' => 'uploads/my-avatar.png'
+        ])->save();
+
+        $this->assertEquals($user->getOriginal('avatar'), 'uploads/my-avatar.png');
+        $this->assertEquals('/storage/uploads/my-avatar.png', $user->imageUrl('avatar'));
+        $this->assertEquals('/storage/uploads/my-avatar.png', $user->avatar);
+    }
+
+    /**
+     * it gives correct value using path specified in field options when model has mutator method
+     *
+     * @test
+     */
+    public function it_gives_correct_value_using_path_specified_in_field_option_when_model_has_mutator_method()
+    {
+        $user = new class extends User {
+            use HasImageUploads;
+
+            public static $imageFields = [
+                'avatar' => [
+                    'width' => 300,
+                    'path' => 'avatar'
+                ]
+            ];
+
+            public function getAvatarAttribute($value)
+            {
+                return $this->imageUrl('avatar');
+            }
+        };
+
+        $user->forceFill([
+            'name' => 'John',
+            'email' => 'John@email.com',
+            'password' => 'secret',
+        ])->save();
+        
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('avatar.jpg');
+        $this->assertNull($user->getOriginal('avatar'));
+        $user->uploadImage($image);
+
+        // Assert the file was stored...
+        Storage::disk('public')->assertExists('avatar/' . $image->hashName());
+        Storage::disk('public')->assertMissing('uploads/' . $image->hashName());
+
+        $this->assertEquals('avatar/' . $image->hashName(), $user->fresh()->getOriginal('avatar'));
+        $this->assertEquals('/storage/avatar/' . $image->hashName(), $user->avatar);
     }
 }
