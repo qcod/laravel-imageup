@@ -124,7 +124,9 @@ trait HasImageUploads
         $this->updateModel($imagePath, $this->imageFieldName);
 
         // delete old image
-        $this->deleteImage($currentImage);
+        if ($currentImage != $imagePath) {
+            $this->deleteImage($currentImage);
+        }
     }
 
     /**
