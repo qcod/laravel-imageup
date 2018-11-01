@@ -722,4 +722,45 @@ class ImageUpTest extends TestCase
         $this->assertEquals('avatar/' . $image->hashName(), $user->fresh()->getOriginal('avatar'));
         $this->assertEquals('/storage/avatar/' . $image->hashName(), $user->avatar);
     }
+
+    /**
+     * it can override file path and filename if method defined on model
+     *
+     * @test
+     */
+    public function it_can_override_file_path_and_filename_if_method_defined_on_model()
+    {
+        $user = new CustomFilenameModel([
+            'name' => 'Saqueib',
+            'email' => 'info@example.com',
+            'password' => 'secret',
+        ]);
+
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('avatar.jpg');
+        $this->assertNull($user->getOriginal('avatar'));
+        $user->uploadImage($image);
+
+        // Assert the file was stored...
+        Storage::disk('public')->assertExists('avatar/custome-avatar.jpg');
+        Storage::disk('public')->assertMissing('uploads/custome-avatar.jpg');
+        $this->assertEquals('avatar/custome-avatar.jpg', $user->fresh()->getOriginal('avatar'));
+    }
+}
+
+class CustomFilenameModel extends User {
+    use HasImageUploads;
+
+    public static $imageFields = [
+        'avatar' => [
+            'width' => 300,
+            'path' => 'avatar'
+        ]
+    ];
+
+    protected function avatarUploadFilePath($file)
+    {
+        return 'custome-avatar.jpg';
+    }
 }

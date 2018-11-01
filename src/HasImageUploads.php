@@ -267,7 +267,7 @@ trait HasImageUploads
 
         $imagesFields = $this->getDefinedImageFields();
         $fieldKey = array_first(array_keys($imagesFields));
-        
+
         // return first field name
         return is_int($fieldKey)
             ? $imagesFields[$fieldKey]
@@ -404,7 +404,7 @@ trait HasImageUploads
             config('imageup.resize_image_quality')
         );
 
-        $imagePath = $this->getImageUploadPath() . '/' . $imageFile->hashName();
+        $imagePath = $this->getFileUploadPath($imageFile);
 
         $this->getStorageDisk()->put(
             $imagePath,
@@ -480,13 +480,13 @@ trait HasImageUploads
             // check if global upload is allowed, then in override in option
             $autoUploadAllowed = array_get($options, 'auto_upload', $this->canAutoUploadImages());
 
-            if (! $autoUploadAllowed) {
+            if (!$autoUploadAllowed) {
                 continue;
             }
 
             // get the input file name
             $requestFileName = array_get($options, 'file_input', $field);
-            
+
             // if request has the file upload it
             if (request()->hasFile($requestFileName)) {
                 $this->uploadImage(
@@ -574,5 +574,23 @@ trait HasImageUploads
         }
 
         return $this;
+    }
+
+    /**
+     * Get the full path to upload file
+     *
+     * @param $file
+     * @return string
+     */
+    protected function getFileUploadPath($file)
+    {
+        // check if path override is defined for current file
+        $pathOverrideMethod = camel_case(strtolower($this->imageFieldName) . 'UploadFilePath');
+
+        if (method_exists($this, $pathOverrideMethod)) {
+            return $this->getImageUploadPath() . '/' . $this->$pathOverrideMethod($file);
+        }
+
+        return $this->getImageUploadPath() . '/' . $file->hashName();
     }
 }
