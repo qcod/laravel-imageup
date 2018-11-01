@@ -139,6 +139,47 @@ class User extends Model {
     ];
 }
 ```
+### Customize filename
+
+In some case you will need to customize the saved filename. By default it will be `$file->hashName()` generated hash.
+
+You can do it by adding a method on the model with `{fieldName}UploadFilePath` naming convention:
+
+```php
+class User extends Model {
+    use HasImageUploads;
+    
+    // assuming `users` table has 'cover', 'avatar' columns
+    // mark all the columns as image fields 
+    protected static $imageFields = [
+        'cover', 'avatar'
+    ];
+    
+    // override cover file name
+    protected function coverUploadFilePath($file) {
+        return $this->id . '-cover-image.jpg';
+    }
+}
+```
+
+Above will always save uploaded cover image as `uplodas/1-cover-image.jpg`.
+
+> Make sure to return only relative path from override method.
+ 
+Request file will be passed as `$file` param in this method, so you can get the extension or original file name etc to build the filename.
+
+```php
+    // override cover file name
+    protected function coverUploadFilePath($file) {
+        return $this->id .'-'. $file->$file->getClientOriginalName();
+    }
+    
+    /** Some of methods on file */
+    // $file->getClientOriginalExtension()
+    // $file->getRealPath()
+    // $file->getSize()
+    // $file->getMimeType()
+```
 
 ### Available methods
 
