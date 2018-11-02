@@ -7,7 +7,7 @@ use QCod\ImageUp\HasImageUploads;
 use QCod\ImageUp\Tests\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
-use QCod\ImageUp\Exceptions\InvalidImageFieldException;
+use QCod\ImageUp\Exceptions\InvalidUploadFieldException;
 
 class ImageUpTest extends TestCase
 {
@@ -53,7 +53,7 @@ class ImageUpTest extends TestCase
     {
         $user = new User();
 
-        $this->expectException(InvalidImageFieldException::class);
+        $this->expectException(InvalidUploadFieldException::class);
         $user->getImageFieldOptions('avatar');
     }
 
@@ -69,7 +69,7 @@ class ImageUpTest extends TestCase
         $fieldOption = ['avatar' => ['width' => 200]];
         $user->setImagesField($fieldOption);
 
-        $this->assertArraySubset($fieldOption, $user->getDefinedImageFields());
+        $this->assertArraySubset($fieldOption, $user->getDefinedUploadFields());
     }
 
     /**
@@ -84,7 +84,7 @@ class ImageUpTest extends TestCase
         $fieldOption = ['avatar' => ['width' => 200], 'cover'];
         $user->setImagesField($fieldOption);
 
-        $this->assertArraySubset($fieldOption, $user->getDefinedImageFields());
+        $this->assertArraySubset($fieldOption, $user->getDefinedUploadFields());
         $this->assertTrue($user->hasImageField('cover'));
         $this->assertTrue($user->hasImageField('avatar'));
     }
@@ -101,7 +101,7 @@ class ImageUpTest extends TestCase
         $fieldOption = ['avatar', 'cover'];
         $user->setImagesField($fieldOption);
 
-        $this->assertArraySubset($fieldOption, $user->getDefinedImageFields());
+        $this->assertArraySubset($fieldOption, $user->getDefinedUploadFields());
         $this->assertTrue($user->hasImageField('cover'));
         $this->assertTrue($user->hasImageField('avatar'));
     }
@@ -488,7 +488,6 @@ class ImageUpTest extends TestCase
         Storage::disk('public')->assertExists('uploads/' . $avatar->hashName());
         Storage::disk('public')->assertExists('uploads/' . $cover->hashName());
 
-
         $this->assertNotNull($user->getOriginal('avatar'));
         $this->assertNotNull($user->getOriginal('cover'));
 
@@ -524,7 +523,6 @@ class ImageUpTest extends TestCase
         // Assert the file was stored...
         Storage::disk('public')->assertExists('uploads/' . $avatar->hashName());
         Storage::disk('public')->assertMissing('uploads/' . $cover->hashName());
-
 
         $this->assertNotNull($user->getOriginal('avatar'));
         $this->assertNull($user->getOriginal('cover'));

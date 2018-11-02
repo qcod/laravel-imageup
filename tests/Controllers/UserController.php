@@ -56,4 +56,21 @@ class UserController extends Controller
 
         return $user;
     }
+
+    public function storeFileWithOption(Request $request)
+    {
+        $user = new User();
+
+        $fieldOption = [
+            'resume' => [
+                'path' => 'resumes'
+            ],
+            'cover_letter'
+        ];
+
+        $user->setFilesField($fieldOption);
+        $user->forceFill($request->except('cover'))->save();
+
+        return $user;
+    }
 }
