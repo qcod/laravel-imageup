@@ -137,6 +137,35 @@ class User extends Model {
             //...    
         ]
     ];
+    
+    // any other than image file type for upload
+    protected static $fileFields = [
+            'resume' => [
+                // what disk you want to upload, default config('imageup.upload_disk')
+                'disk' => 'public',
+                
+                // a folder path on the above disk, default config('imageup.upload_directory')
+                'path' => 'docs',
+                
+                // validation rules when uploading file
+                'rules' => 'mimes:doc,pdf,docx|max:1000',
+                
+                // override global auto upload setting coming from config('imageup.auto_upload_images')
+                'auto_upload' => false,
+                
+                // if request file is don't have same name, default will be the field name
+                'file_input' => 'cv',
+                
+                // a hook that is triggered before the file is saved
+                'before_save' => HookForBeforeSave::class,
+                
+                // a hook that is triggered after the file is saved
+                'after_save' => HookForAfterSave::class
+            ],
+            'cover_letter' => [
+                //...    
+            ]
+        ];
 }
 ```
 ### Customize filename
@@ -189,38 +218,46 @@ You are not limited to use auto upload image feature only. This trait will give 
 on model or dynamiclly by calling `$model->disableAutoUpload()`. You can also disable it for specifig field by calling `$model->setImagesField(['cover' => ['auto_upload' => false]);`
 otherwise you will be not seeing your manual uploads, since it will be overwritten by auto upload upon model save.
 
-#### $model->uploadImage($imageFile, $field = null)
+#### $model->uploadImage($imageFile, $field = null) / $model->uploadFile($docFile, $field = null) 
 
-Upload image for given $field, if $field is null it will upload to first image option defined in array.
+Upload image/file for given $field, if $field is null it will upload to first image/file option defined in array.
 
 ```php
 $user = User::findOrFail($id);
 $user->uploadImage(request()->file('cover'), 'cover');
+$user->uploadFile(request()->file('resume'), 'resume');
 ```
 
-#### $model->setImagesField($fieldsOptions)
+#### $model->setImagesField($fieldsOptions) / $model->setFilesField($fieldsOptions) 
 
-You can also set the image fields dynamically by calling `$model->setImagesField($fieldsOptions)` with field options, it will replace fields defined on model property.
+You can also set the image/file fields dynamically by calling `$model->setImagesField($fieldsOptions) / $model->setFilesField($fieldsOptions)` with field options, it will replace fields defined on model property.
 
 ```php
 $user = User::findOrFail($id);
 
 $fieldOptions = [
     'cover' => [ 'width' => 1000 ],
-    'avatar' => [ 'width' => 120, 'crop' => true ]    
+    'avatar' => [ 'width' => 120, 'crop' => true ],    
 ];
 
 // override image fields defined on  model 
 $user->setImagesField($fieldOptions);
+
+$fileFieldOption = [
+    'resume' => ['path' => 'resumes']
+];
+
+// override file fields defined on  model
+$user->setFilesField($fileFieldOption);
 ```
 
-#### $model->hasImageField($field)
+#### $model->hasImageField($field) / $model->hasFileField($field)
 
-To check if field is defined as image field.
+To check if field is defined as image/file field.
 
-#### $model->deleteImage($filePath)
+#### $model->deleteImage($filePath) / $model->deleteFile($filePath) 
 
-Delete any image if it exists.
+Delete any image/file if it exists.
 
 #### $model->resizeImage($imageFile, $fieldOptions)
 
@@ -260,9 +297,9 @@ $user->cropTo($coords)
     ->uploadImage(request()->file('cover'), 'avatar');
 ```
 
-#### $model->imageUrl($field)
+#### $model->imageUrl($field) / $model->fileUrl($field)
 
-Gives uploaded image url for given image field.
+Gives uploaded file url for given image/file field.
 
 ```php
 $user = User::findOrFail($id);

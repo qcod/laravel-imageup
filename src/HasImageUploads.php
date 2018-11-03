@@ -21,7 +21,7 @@ trait HasImageUploads
      *
      * @var array
      */
-    protected $filesFields = [];
+    private $filesFields = [];
 
     /**
      * Image crop coordinates
@@ -42,6 +42,7 @@ trait HasImageUploads
      *
      * @var array
      */
+
     private $uploadFieldOptions;
 
     /**
@@ -80,7 +81,7 @@ trait HasImageUploads
     public function imageUrl($field = null)
     {
         $this->uploadFieldName = $this->getImageFieldName($field);
-        $this->uploadFieldOptions = $this->getImageFieldOptions($this->uploadFieldName);
+        $this->uploadFieldOptions = $this->getUploadFieldOptions($this->uploadFieldName);
 
         // get the model attribute value
         $attributeValue = $this->getOriginal($this->uploadFieldName);
@@ -135,7 +136,7 @@ trait HasImageUploads
     public function uploadImage($imageFile, $field = null)
     {
         $this->uploadFieldName = $this->getImageFieldName($field);
-        $this->uploadFieldOptions = $this->getImageFieldOptions($this->uploadFieldName);
+        $this->uploadFieldOptions = $this->getUploadFieldOptions($this->uploadFieldName);
 
         // validate it
         $this->validateImage($imageFile, $this->uploadFieldName, $this->uploadFieldOptions);
@@ -266,13 +267,13 @@ trait HasImageUploads
     }
 
     /**
-     * Get image field options
+     * Get upload field options
      *
      * @param $field
      * @return array
      * @throws InvalidUploadFieldException
      */
-    public function getImageFieldOptions($field = null)
+    public function getUploadFieldOptions($field = null)
     {
         // get first option if no field provided
         if (is_null($field)) {
@@ -280,7 +281,7 @@ trait HasImageUploads
 
             if (!$imagesFields) {
                 throw new InvalidUploadFieldException(
-                    'No image fields are defined in $imageFields array on model.'
+                    'No upload fields are defined in $imageFields/$fileFields array on model.'
                 );
             }
 
@@ -293,7 +294,7 @@ trait HasImageUploads
         // check if provided filed defined
         if (!$this->hasImageField($field)) {
             throw new InvalidUploadFieldException(
-                'Image field `' . $field . '` is not defined in $imageFields array on model.'
+                'Image/File field `' . $field . '` is not defined in $imageFields/$fileFields array on model.'
             );
         }
 

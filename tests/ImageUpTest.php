@@ -41,7 +41,7 @@ class ImageUpTest extends TestCase
             'height' => 200,
             'crop' => true,
             'folder' => 'avatar'
-        ], $user->getImageFieldOptions('avatar'));
+        ], $user->getUploadFieldOptions('avatar'));
     }
 
     /**
@@ -54,7 +54,7 @@ class ImageUpTest extends TestCase
         $user = new User();
 
         $this->expectException(InvalidUploadFieldException::class);
-        $user->getImageFieldOptions('avatar');
+        $user->getUploadFieldOptions('avatar');
     }
 
     /**
@@ -120,7 +120,7 @@ class ImageUpTest extends TestCase
         ];
         $user->setImagesField($fieldOption);
 
-        $this->assertArraySubset(['width' => 200], $user->getImageFieldOptions());
+        $this->assertArraySubset(['width' => 200], $user->getUploadFieldOptions());
     }
 
     /**
@@ -157,8 +157,8 @@ class ImageUpTest extends TestCase
 
         $this->assertEquals('avatar', $user->getImageFieldName());
         $this->assertEquals('avatar', $user->getImageFieldName('avatar'));
-        $this->assertSame([], $user->getImageFieldOptions());
-        $this->assertSame([], $user->getImageFieldOptions('avatar'));
+        $this->assertSame([], $user->getUploadFieldOptions());
+        $this->assertSame([], $user->getUploadFieldOptions('avatar'));
     }
     
     /**
