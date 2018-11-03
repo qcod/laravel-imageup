@@ -200,7 +200,7 @@ Request file will be passed as `$file` param in this method, so you can get the 
 ```php
     // override cover file name
     protected function coverUploadFilePath($file) {
-        return $this->id .'-'. $file->$file->getClientOriginalName();
+        return $this->id .'-'. $file->getClientOriginalName();
     }
     
     /** Some of methods on file */
