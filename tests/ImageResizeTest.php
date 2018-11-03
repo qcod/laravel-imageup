@@ -15,9 +15,7 @@ class ImageResizeTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = new class extends User {
-            use HasImageUploads;
-        };
+        $this->user = new User();
 
         $this->assertTrue(file_exists($this->testImage), 'Test image file do not exists.');
     }

@@ -25,16 +25,7 @@ class ImageUpTest extends TestCase
      */
     public function it_gets_image_field_options()
     {
-        $user = new class() extends User {
-            use HasImageUploads;
-
-            protected static $imageFields = ['avatar' => [
-                'width' => 200,
-                'height' => 200,
-                'crop' => true,
-                'folder' => 'avatar'
-            ]];
-        };
+        $user = new ImageFieldOptionsModel();
 
         $this->assertArraySubset([
             'width' => 200,
@@ -211,13 +202,11 @@ class ImageUpTest extends TestCase
      */
     public function it_gives_image_url_if_image_saved_in_db()
     {
-        $user = new class extends User {
-            use HasImageUploads;
+        $user = new User();
+        $user->setImagesField([
+            'avatar' => ['placeholder' => '/images/cover-placeholder.png']
+        ]);
 
-            public static $imageFields = [
-                'avatar' => ['placeholder' => '/images/cover-placeholder.png']
-            ];
-        };
         $user->forceFill([
             'name' => 'John',
             'email' => 'John@email.com',
@@ -238,13 +227,11 @@ class ImageUpTest extends TestCase
      */
     public function it_gives_placeholder_image_url_if_file_has_no_image_and_placeholder_option_is_defined()
     {
-        $user = new class extends User {
-            use HasImageUploads;
+        $user = new User();
+        $user->setImagesField([
+            'cover' => ['placeholder' => '/images/cover-placeholder.png']
+        ]);
 
-            public static $imageFields = [
-                'cover' => ['placeholder' => '/images/cover-placeholder.png']
-            ];
-        };
         $user->forceFill([
             'name' => 'John',
             'email' => 'John@email.com',
@@ -264,15 +251,12 @@ class ImageUpTest extends TestCase
      */
     public function it_validate_the_uploaded_file_using_provided_rules()
     {
-        $user = new class extends User {
-            use HasImageUploads;
-
-            public static $imageFields = [
-                'avatar' => [
-                    'rules' => 'required|image'
-                ]
-            ];
-        };
+        $user = new User();
+        $user->setImagesField([
+            'avatar' => [
+                'rules' => 'required|image'
+            ]
+        ]);
 
         Storage::fake('public');
         $doc = UploadedFile::fake()->create('document.pdf');
@@ -687,18 +671,8 @@ class ImageUpTest extends TestCase
      */
     public function it_gives_correct_value_when_model_has_mutator_method()
     {
-        $user = new class extends User {
-            use HasImageUploads;
+        $user = new ModelWithMutator();
 
-            public static $imageFields = [
-                'avatar'
-            ];
-
-            public function getAvatarAttribute($value)
-            {
-                return $this->imageUrl('avatar');
-            }
-        };
         $user->forceFill([
             'name' => 'John',
             'email' => 'John@email.com',
@@ -718,21 +692,13 @@ class ImageUpTest extends TestCase
      */
     public function it_gives_correct_value_using_path_specified_in_field_option_when_model_has_mutator_method()
     {
-        $user = new class extends User {
-            use HasImageUploads;
-
-            public static $imageFields = [
-                'avatar' => [
-                    'width' => 300,
-                    'path' => 'avatar'
-                ]
-            ];
-
-            public function getAvatarAttribute($value)
-            {
-                return $this->imageUrl('avatar');
-            }
-        };
+        $user = new ModelWithMutator();
+        $user->setImagesField([
+            'avatar' => [
+                'width' => 300,
+                'path' => 'avatar'
+            ]
+        ]);
 
         $user->forceFill([
             'name' => 'John',
@@ -793,5 +759,29 @@ class CustomFilenameModel extends User {
     protected function avatarUploadFilePath($file)
     {
         return 'custome-avatar.jpg';
+    }
+}
+
+class ImageFieldOptionsModel extends User {
+    use HasImageUploads;
+
+    protected static $imageFields = ['avatar' => [
+        'width' => 200,
+        'height' => 200,
+        'crop' => true,
+        'folder' => 'avatar'
+    ]];
+}
+
+class ModelWithMutator extends User {
+    use HasImageUploads;
+
+    public static $imageFields = [
+        'avatar'
+    ];
+
+    public function getAvatarAttribute($value)
+    {
+        return $this->imageUrl('avatar');
     }
 }
