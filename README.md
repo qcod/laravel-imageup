@@ -73,7 +73,7 @@ class UserController extends Controller {
 
 That's it, with above setup when ever you hit store method with post request and if `cover` or `avatar` named file is present on request() it will be auto uploaded.  
 
-## Image Field options
+## Upload Field options
 
 ImageUp gives you tons of customization on how the upload and resize will be handled from defined field options, following are the things you can customize:
 
@@ -210,7 +210,7 @@ Request file will be passed as `$file` param in this method, so you can get the 
     // $file->getMimeType()
 ```
 
-### Available methods
+## Available methods
 
 You are not limited to use auto upload image feature only. This trait will give you following methods which you can use to manually upload and resize image.
 
