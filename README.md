@@ -186,7 +186,7 @@ Request file will be passed as `$file` param in this method, so you can get the 
 You are not limited to use auto upload image feature only. This trait will give you following methods which you can use to manually upload and resize image.
 
 **Note:** Make sure you have disabled auto upload by setting `protected $autoUploadImages = false;` 
-on model or by calling `$model->setImagesField(['cover' => ['auto_upload' => false]);`
+on model or dynamiclly by calling `$model->disableAutoUpload()`. You can also disable it for specifig field by calling `$model->setImagesField(['cover' => ['auto_upload' => false]);`
 otherwise you will be not seeing your manual uploads, since it will be overwritten by auto upload upon model save.
 
 #### $model->uploadImage($imageFile, $field = null)
