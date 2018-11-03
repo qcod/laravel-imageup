@@ -18,9 +18,25 @@ class UserController extends Controller
         ];
 
         $user->setImagesField($fieldOption);
-        $user->forceFill($request->all())->save();
+        $user->forceFill($request->except('avatar', 'cover'))->save();
 
-        return $user;
+        return $user->fresh();
+    }
+
+    public function storeAutoUploadDisabled(Request $request)
+    {
+        $user = new User();
+        $user->disableAutoUpload();
+
+        $fieldOption = [
+            'avatar' => ['width' => 200],
+            'cover' => ['width' => 400, 'height' => 400]
+        ];
+
+        $user->setImagesField($fieldOption);
+        $user->forceFill($request->except('avatar', 'cover'))->save();
+
+        return $user->fresh();
     }
 
     public function storeImagesWithoutOptions(Request $request)

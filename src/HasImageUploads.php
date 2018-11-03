@@ -45,13 +45,23 @@ trait HasImageUploads
     private $uploadFieldOptions;
 
     /**
+     * Flag to disable auto upload
+     *
+     * @var bool
+     */
+    protected $disableAutoUpload = false;
+
+    /**
      * Boot up the trait
      */
     public static function bootHasImageUploads()
     {
         // hook up the events
         static::saved(function ($model) {
-            $model->autoUpload();
+            // check for autoupload disabled
+            if (!$model->disableAutoUpload) {
+                $model->autoUpload();
+            }
         });
 
         // delete event
@@ -736,5 +746,27 @@ trait HasImageUploads
         $this->triggerAfterSaveHook($file);
 
         return $filePath;
+    }
+
+    /**
+     * Disable auto upload
+     *
+     * @return $this
+     */
+    public function disableAutoUpload()
+    {
+        $this->disableAutoUpload = true;
+        return $this;
+    }
+
+    /**
+     * Enable auto upload
+     *
+     * @return $this
+     */
+    public function enableAutoUpload()
+    {
+        $this->disableAutoUpload = false;
+        return $this;
     }
 }

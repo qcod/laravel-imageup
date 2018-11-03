@@ -460,6 +460,39 @@ class ImageUpTest extends TestCase
     }
 
     /**
+     * it dont auto upload files if disabled
+     *
+     * @test
+     */
+    public function it_dont_auto_upload_files_if_disabled()
+    {
+        Storage::fake('public');
+
+        $cover = UploadedFile::fake()->image('cover.jpg');
+        $avatar = UploadedFile::fake()->image('avatar.jpg');
+
+        $data = [
+            'name' => 'Saqueib',
+            'email' => 'me@example.com',
+            'password' => 'secret',
+            'avatar' => $avatar,
+            'cover' => $cover,
+        ];
+
+        $response = $this->post('/test/users-auto-upload-disabled', $data);
+        $user = $response->original;
+
+        $response->assertStatus(200);
+
+        // Assert the file was stored...
+        Storage::disk('public')->assertMissing('uploads/' . $avatar->hashName());
+        Storage::disk('public')->assertMissing('uploads/' . $cover->hashName());
+
+        $this->assertNull($user->getOriginal('avatar'));
+        $this->assertNull($user->getOriginal('cover'));
+    }
+
+    /**
      * it auto upload images without options
      *
      * @test

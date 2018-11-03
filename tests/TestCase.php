@@ -27,6 +27,7 @@ abstract class TestCase extends OrchestraTestCase
         // define some route to test auto upload
         Route::group(['namespace' => 'QCod\ImageUp\Tests\Controllers'], function () {
             Route::post('test/users', 'UserController@store');
+            Route::post('test/users-auto-upload-disabled', 'UserController@storeAutoUploadDisabled');
             Route::post('test/users-file', 'UserController@storeFileWithOption');
             Route::post('test/users/uploads/images-without-options', 'UserController@storeImagesWithoutOptions');
             Route::post('test/users/uploads/images-with-mixed-options', 'UserController@storeImagesWithMixedOptions');
