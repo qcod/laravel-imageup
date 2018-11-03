@@ -137,8 +137,8 @@ class ImageUpTest extends TestCase
         ];
         $user->setImagesField($fieldOption);
 
-        $this->assertEquals('avatar', $user->getImageFieldName());
-        $this->assertEquals('logo', $user->getImageFieldName('logo'));
+        $this->assertEquals('avatar', $user->getUploadFieldName());
+        $this->assertEquals('logo', $user->getUploadFieldName('logo'));
     }
 
     /**
@@ -155,8 +155,8 @@ class ImageUpTest extends TestCase
         ];
         $user->setImagesField($fieldOption);
 
-        $this->assertEquals('avatar', $user->getImageFieldName());
-        $this->assertEquals('avatar', $user->getImageFieldName('avatar'));
+        $this->assertEquals('avatar', $user->getUploadFieldName());
+        $this->assertEquals('avatar', $user->getUploadFieldName('avatar'));
         $this->assertSame([], $user->getUploadFieldOptions());
         $this->assertSame([], $user->getUploadFieldOptions('avatar'));
     }

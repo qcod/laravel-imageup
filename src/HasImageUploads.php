@@ -42,7 +42,6 @@ trait HasImageUploads
      *
      * @var array
      */
-
     private $uploadFieldOptions;
 
     /**
@@ -72,7 +71,7 @@ trait HasImageUploads
     }
 
     /**
-     * Get absolute Image url for a field
+     * Get absolute url for a field
      *
      * @param null $field
      * @return mixed|string
@@ -80,7 +79,7 @@ trait HasImageUploads
      */
     public function imageUrl($field = null)
     {
-        $this->uploadFieldName = $this->getImageFieldName($field);
+        $this->uploadFieldName = $this->getUploadFieldName($field);
         $this->uploadFieldOptions = $this->getUploadFieldOptions($this->uploadFieldName);
 
         // get the model attribute value
@@ -135,7 +134,7 @@ trait HasImageUploads
      */
     public function uploadImage($imageFile, $field = null)
     {
-        $this->uploadFieldName = $this->getImageFieldName($field);
+        $this->uploadFieldName = $this->getUploadFieldName($field);
         $this->uploadFieldOptions = $this->getUploadFieldOptions($this->uploadFieldName);
 
         // validate it
@@ -328,12 +327,12 @@ trait HasImageUploads
     }
 
     /**
-     * Get the image field name
+     * Get the upload field name
      *
      * @param null $field
      * @return mixed|null
      */
-    public function getImageFieldName($field = null)
+    public function getUploadFieldName($field = null)
     {
         if (!is_null($field)) {
             return $field;
@@ -444,6 +443,24 @@ trait HasImageUploads
         return property_exists($this, 'imagesUploadPath')
             ? trim($this->imagesUploadPath, '/')
             : trim(config('imageup.upload_directory', 'uploads'), '/');
+    }
+
+    /**
+     * Get the full path to upload file
+     *
+     * @param $file
+     * @return string
+     */
+    protected function getFileUploadPath($file)
+    {
+        // check if path override is defined for current file
+        $pathOverrideMethod = camel_case(strtolower($this->uploadFieldName) . 'UploadFilePath');
+
+        if (method_exists($this, $pathOverrideMethod)) {
+            return $this->getImageUploadPath() . '/' . $this->$pathOverrideMethod($file);
+        }
+
+        return $this->getImageUploadPath() . '/' . $file->hashName();
     }
 
     /**
@@ -691,24 +708,6 @@ trait HasImageUploads
         }
 
         return $this;
-    }
-
-    /**
-     * Get the full path to upload file
-     *
-     * @param $file
-     * @return string
-     */
-    protected function getFileUploadPath($file)
-    {
-        // check if path override is defined for current file
-        $pathOverrideMethod = camel_case(strtolower($this->uploadFieldName) . 'UploadFilePath');
-
-        if (method_exists($this, $pathOverrideMethod)) {
-            return $this->getImageUploadPath() . '/' . $this->$pathOverrideMethod($file);
-        }
-
-        return $this->getImageUploadPath() . '/' . $file->hashName();
     }
 
     /**
