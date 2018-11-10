@@ -1,12 +1,26 @@
 language: php
 
-php:
-  - 7.1
-  - 7.2
+matrix:
+  include:
+    - 5.6
+    - 7.0
+    - 7.1
+    - 7.2
+    - 7.3
+  fast_finish: true
+  allow_failures:
+    - php: 7.3
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+
+before_install:
+  - phpenv config-rm xdebug.ini || return 0
+  - travis_retry composer self-update
 
 before_script:
-  - travis_retry composer self-update
-  - travis_retry composer install
+  - travis_retry composer install --no-interaction --no-suggest
 
 script: vendor/bin/phpunit --verbose
 
