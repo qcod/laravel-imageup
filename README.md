@@ -191,7 +191,7 @@ class User extends Model {
 }
 ```
 
-Above will always save uploaded cover image as `uplodas/1-cover-image.jpg`.
+Above will always save uploaded cover image as `uploads/1-cover-image.jpg`.
 
 > Make sure to return only relative path from override method.
  
