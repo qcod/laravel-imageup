@@ -2,6 +2,8 @@
 
 namespace QCod\ImageUp;
 
+use InvalidArgumentException;
+use QCod\ImageUp\Contracts\Handler;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Contracts\Validation\Factory;
@@ -671,9 +673,28 @@ trait HasImageUploads
 
         // We assume that the user is passing the hook class name
         if (is_string($hook)) {
-            $instance = app($hook);
+            $instance = $this->makeHook($hook);
             $instance->handle($image);
         }
+    }
+
+    /**
+     * Get the hook class instance.
+     *
+     * @param $hook
+     * @param $image
+     *
+     * @throws \InvalidArgumentException
+     */
+    private function makeHook($hook)
+    {
+        $instance = app($hook);
+
+        if (! $instance instanceof Handler) {
+            throw new InvalidArgumentException("Class {$hook} must be an instance of QCod\\ImageUp\\Contracts\\Handler.");
+        }
+
+        return $instance;
     }
 
     /**

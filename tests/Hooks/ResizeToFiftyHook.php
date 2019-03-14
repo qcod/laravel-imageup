@@ -2,7 +2,9 @@
 
 namespace QCod\ImageUp\Tests\Hooks;
 
-class ResizeToFiftyHook
+use QCod\ImageUp\Contracts\Handler;
+
+class ResizeToFiftyHook implements Handler
 {
     public function handle($image)
     {

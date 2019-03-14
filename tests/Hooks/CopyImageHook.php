@@ -3,9 +3,9 @@
 namespace QCod\ImageUp\Tests\Hooks;
 
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Facades\Image;
+use QCod\ImageUp\Contracts\Handler;
 
-class CopyImageHook
+class CopyImageHook implements Handler
 {
     public function handle($image)
     {

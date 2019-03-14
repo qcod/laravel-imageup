@@ -744,6 +744,28 @@ class ImageUpTest extends TestCase
         Storage::disk('public')->assertMissing('uploads/custome-avatar.jpg');
         $this->assertEquals('avatar/custome-avatar.jpg', $user->fresh()->getOriginal('avatar'));
     }
+
+    /**
+     * it expect exception from a hook class without handler interface.
+     *
+     * @test
+     * @expectedException InvalidArgumentException
+     */
+    public function it_expect_exception_from_a_hook_class_without_handler_interface()
+    {
+        $user = $this->createUser([], [
+            'avatar' => [
+                'width' => 100,
+                'height' => 100,
+                'before_save' => '\QCod\ImageUp\Tests\Hooks\HookWithoutInterface',
+            ]
+        ]);
+
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('avatar.jpg', 200, 200);
+        $user->uploadImage($image);
+    }
 }
 
 class CustomFilenameModel extends User {

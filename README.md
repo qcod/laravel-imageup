@@ -337,9 +337,9 @@ protected static $imageFields = [
     ]
 ];
 ```
+The hook class must implements `QCod\ImageUp\Contracts\Handler` interface, the `handle` method will be called when the hook is triggered.
 
-The hook class must have a method named `handle` that will be called when the hook is triggered.
-An instance of the intervention image will be passed to the `handle` method.
+*Note:* If the upload is an image, an instance of the intervention image will be passed to the `handle` method.
 
 ```php
 class BlurFilter {
