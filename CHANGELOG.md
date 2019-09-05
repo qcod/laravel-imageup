@@ -2,8 +2,11 @@
 
 All notable changes to `laravel-imageup` will be documented in this file
 
-## 1.0.6 - 2019-09-06
+## 1.0.7 - 2019-09-06
 - Laravel 6 support
+
+## 1.0.6 - 2019-09-06
+- Laravel 5.8 support
 
 ## 1.0.5 - 2018-11-03
 - Added support to upload non image file also
