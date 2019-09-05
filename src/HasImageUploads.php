@@ -2,6 +2,7 @@
 
 namespace QCod\ImageUp;
 
+use Illuminate\Support\Arr;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Contracts\Validation\Factory;
@@ -86,7 +87,7 @@ trait HasImageUploads
         $attributeValue = $this->getOriginal($this->uploadFieldName);
 
         // check for placeholder defined in option
-        $placeholderImage = array_get($this->uploadFieldOptions, 'placeholder');
+        $placeholderImage = Arr::get($this->uploadFieldOptions, 'placeholder');
 
         return (empty($attributeValue) && $placeholderImage)
             ? $placeholderImage
@@ -186,8 +187,8 @@ trait HasImageUploads
         }
 
         // resize it according to options
-        $width = array_get($imageFieldOptions, 'width');
-        $height = array_get($imageFieldOptions, 'height');
+        $width = Arr::get($imageFieldOptions, 'width');
+        $height = Arr::get($imageFieldOptions, 'height');
         $cropHeight = empty($height) ? $width : $height;
         $crop = $this->getCropOption($imageFieldOptions);
 
@@ -284,8 +285,8 @@ trait HasImageUploads
                 );
             }
 
-            $fieldKey = array_first(array_keys($imagesFields));
-            $options = is_int($fieldKey) ? [] : array_first($imagesFields);
+            $fieldKey = Arr::first(array_keys($imagesFields));
+            $options = is_int($fieldKey) ? [] : Arr::first($imagesFields);
 
             return $options;
         }
@@ -297,7 +298,7 @@ trait HasImageUploads
             );
         }
 
-        return array_get($this->getDefinedUploadFields(), $field, []);
+        return Arr::get($this->getDefinedUploadFields(), $field, []);
     }
 
     /**
@@ -339,7 +340,7 @@ trait HasImageUploads
         }
 
         $imagesFields = $this->getDefinedUploadFields();
-        $fieldKey = array_first(array_keys($imagesFields));
+        $fieldKey = Arr::first(array_keys($imagesFields));
 
         // return first field name
         return is_int($fieldKey)
@@ -379,7 +380,7 @@ trait HasImageUploads
     private function hasUploadField($field, $definedField)
     {
         // check for string key
-        if (array_has($definedField, $field)) {
+        if (Arr::has($definedField, $field)) {
             return true;
         }
 
@@ -436,7 +437,7 @@ trait HasImageUploads
     protected function getImageUploadPath()
     {
         // check for disk option
-        if ($pathInOption = array_get($this->uploadFieldOptions, 'path')) {
+        if ($pathInOption = Arr::get($this->uploadFieldOptions, 'path')) {
             return $pathInOption;
         }
 
@@ -471,7 +472,7 @@ trait HasImageUploads
     protected function getImageUploadDisk()
     {
         // check for disk option
-        if ($diskInOption = array_get($this->uploadFieldOptions, 'disk')) {
+        if ($diskInOption = Arr::get($this->uploadFieldOptions, 'disk')) {
             return $diskInOption;
         }
 
@@ -511,7 +512,7 @@ trait HasImageUploads
      */
     protected function validateImage($file, $fieldName, $imageOptions)
     {
-        if ($rules = array_get($imageOptions, 'rules')) {
+        if ($rules = Arr::get($imageOptions, 'rules')) {
             $this->validationFactory()->make(
                 [$fieldName => $file],
                 [$fieldName => $rules]
@@ -532,7 +533,7 @@ trait HasImageUploads
         // Trigger before save hook
         $this->triggerBeforeSaveHook($image);
 
-        $imageQuality = array_get(
+        $imageQuality = Arr::get(
             $this->uploadFieldOptions,
             'resize_image_quality',
             config('imageup.resize_image_quality')
@@ -579,7 +580,7 @@ trait HasImageUploads
      */
     protected function getCropOption($imageFieldOptions)
     {
-        $crop = array_get($imageFieldOptions, 'crop', false);
+        $crop = Arr::get($imageFieldOptions, 'crop', false);
 
         // check for crop override
         if (isset($this->cropCoordinates) && count($this->cropCoordinates) == 2) {
@@ -609,17 +610,17 @@ trait HasImageUploads
     {
         foreach ($this->getDefinedUploadFields() as $key => $val) {
             $field = is_int($key) ? $val : $key;
-            $options = array_wrap($val);
+            $options = Arr::wrap($val);
 
             // check if global upload is allowed, then in override in option
-            $autoUploadAllowed = array_get($options, 'auto_upload', $this->canAutoUploadImages());
+            $autoUploadAllowed = Arr::get($options, 'auto_upload', $this->canAutoUploadImages());
 
             if (!$autoUploadAllowed) {
                 continue;
             }
 
             // get the input file name
-            $requestFileName = array_get($options, 'file_input', $field);
+            $requestFileName = Arr::get($options, 'file_input', $field);
 
             // if request has the file upload it
             if (request()->hasFile($requestFileName)) {
@@ -652,7 +653,7 @@ trait HasImageUploads
      */
     protected function needResizing($imageFieldOptions)
     {
-        return array_has($imageFieldOptions, 'width') || array_has($imageFieldOptions, 'height');
+        return Arr::has($imageFieldOptions, 'width') || Arr::has($imageFieldOptions, 'height');
     }
 
     /**
