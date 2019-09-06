@@ -3,6 +3,7 @@
 namespace QCod\ImageUp;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Contracts\Validation\Factory;
@@ -455,7 +456,7 @@ trait HasImageUploads
     protected function getFileUploadPath($file)
     {
         // check if path override is defined for current file
-        $pathOverrideMethod = camel_case(strtolower($this->uploadFieldName) . 'UploadFilePath');
+        $pathOverrideMethod = Str::camel(strtolower($this->uploadFieldName) . 'UploadFilePath');
 
         if (method_exists($this, $pathOverrideMethod)) {
             return $this->getImageUploadPath() . '/' . $this->$pathOverrideMethod($file);
