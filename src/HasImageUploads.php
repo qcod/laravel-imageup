@@ -132,6 +132,7 @@ trait HasImageUploads
      *
      * @param $imageFile
      * @param null $field
+     * @return $this
      * @throws InvalidUploadFieldException|\Exception
      */
     public function uploadImage($imageFile, $field = null)
@@ -157,6 +158,8 @@ trait HasImageUploads
         if ($currentFile != $filePath) {
             $this->deleteImage($currentFile);
         }
+        
+        return $this;
     }
 
     /**
@@ -164,11 +167,12 @@ trait HasImageUploads
      *
      * @param $file
      * @param null $field
+     * @return $this
      * @throws InvalidUploadFieldException
      */
     public function uploadFile($file, $field = null)
     {
-        $this->uploadImage($file, $field);
+        return $this->uploadImage($file, $field);
     }
 
     /**
