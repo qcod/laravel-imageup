@@ -29,7 +29,7 @@
     "orchestra/testbench": "3.8.*|4.*|5.*",
     "orchestra/database": "~3.4.0",
     "mockery/mockery": "^0.9.4 || ~1.0",
-    "phpunit/phpunit": "~5.7"
+    "phpunit/phpunit": "~8.5"
   },
   "autoload": {
     "psr-4": {
