@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class FileUpTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -96,7 +96,7 @@ class FileUpTest extends TestCase
         $response = $this->post('/test/users-file', $data);
         $user = $response->original;
 
-        $response->assertStatus(200);
+        $response->assertStatus(201);
 
         // Assert the file was stored...
         Storage::disk('public')->assertExists('resumes/' . $resume->hashName());

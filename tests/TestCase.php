@@ -23,7 +23,6 @@ abstract class TestCase extends OrchestraTestCase
             'prefix'   => '',
         ]);
 
-
         // define some route to test auto upload
         Route::group(['namespace' => 'QCod\ImageUp\Tests\Controllers'], function () {
             Route::post('test/users', 'UserController@store');
@@ -43,7 +42,6 @@ abstract class TestCase extends OrchestraTestCase
         return [
             ImageServiceProvider::class,
             ImageUpServiceProvider::class,
-            ConsoleServiceProvider::class
         ];
     }
 
