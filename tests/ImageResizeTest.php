@@ -11,7 +11,7 @@ class ImageResizeTest extends TestCase
     protected $newImage;
     protected $user;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -20,7 +20,7 @@ class ImageResizeTest extends TestCase
         $this->assertTrue(file_exists($this->testImage), 'Test image file do not exists.');
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
 
@@ -31,10 +31,10 @@ class ImageResizeTest extends TestCase
 
 
     /**
-    * it resize image based on width given
-    *
-    * @test
-    */
+     * it resize image based on width given
+     *
+     * @test
+     */
     public function it_resize_image_based_on_width_given()
     {
         $this->newImage = $this->user->resizeImage($this->testImage, ['width' => 300]);
@@ -43,10 +43,10 @@ class ImageResizeTest extends TestCase
     }
 
     /**
-    * it resize image by height
-    *
-    * @test
-    */
+     * it resize image by height
+     *
+     * @test
+     */
     public function it_resize_image_by_height()
     {
         $this->newImage = $this->user->resizeImage($this->testImage, ['height' => 200]);
@@ -55,10 +55,10 @@ class ImageResizeTest extends TestCase
     }
 
     /**
-    * it crops image in given width and height
-    *
-    * @test
-    */
+     * it crops image in given width and height
+     *
+     * @test
+     */
     public function it_crops_image_in_given_width_and_height()
     {
         $this->newImage = $this->user->resizeImage(
@@ -95,10 +95,10 @@ class ImageResizeTest extends TestCase
     }
 
     /**
-    * it can override the crop x and y coordinates
-    *
-    * @test
-    */
+     * it can override the crop x and y coordinates
+     *
+     * @test
+     */
     public function it_can_override_the_crop_x_and_y_coordinates()
     {
         $this->newImage = $this->user->cropTo(10, 0)->resizeImage(
@@ -115,10 +115,10 @@ class ImageResizeTest extends TestCase
     }
 
     /**
-    * it do not resize if width and height are not provided
-    *
-    * @test
-    */
+     * it do not resize if width and height are not provided
+     *
+     * @test
+     */
     public function it_do_not_resize_if_width_and_height_are_not_provided()
     {
         $this->newImage = $this->user->resizeImage($this->testImage, []);
