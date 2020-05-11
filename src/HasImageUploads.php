@@ -569,12 +569,19 @@ trait HasImageUploads
      */
     protected function updateModel($imagePath, $imageFieldName)
     {
-        $this->attributes[$imageFieldName] = $imagePath;
+        // check if update_database = false (default: true)
+        $imagesFields = $this->getDefinedUploadFields();
+        $actualField=Arr::get($imagesFields, $imageFieldName);
+        $updateAuthorized=Arr::get($actualField, 'update_database',true);
 
-        $dispatcher = $this->getEventDispatcher();
-        self::unsetEventDispatcher();
-        $this->save();
-        self::setEventDispatcher($dispatcher);
+        // update model (if update_database=true or not set)
+        if($updateAuthorized){
+            $this->attributes[$imageFieldName] = $imagePath;
+            $dispatcher = $this->getEventDispatcher();
+            self::unsetEventDispatcher();
+            $this->save();
+            self::setEventDispatcher($dispatcher); 
+        }
     }
 
     /**
