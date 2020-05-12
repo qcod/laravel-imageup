@@ -85,7 +85,11 @@ trait HasImageUploads
         $this->uploadFieldOptions = $this->getUploadFieldOptions($this->uploadFieldName);
 
         // get the model attribute value
-        $attributeValue = $this->getOriginal($this->uploadFieldName);
+        if(Arr::get($this->uploadFieldOptions, 'update_database',true)){
+            $attributeValue = $this->getOriginal($this->uploadFieldName); 
+        }else{
+            $attributeValue = $this->getFileUploadPath($field);
+        }
 
         // check for placeholder defined in option
         $placeholderImage = Arr::get($this->uploadFieldOptions, 'placeholder');
