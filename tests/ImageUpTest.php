@@ -2,6 +2,7 @@
 
 namespace QCod\ImageUp\Tests;
 
+use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Illuminate\Http\UploadedFile;
 use QCod\ImageUp\Tests\Models\User;
 use QCod\ImageUp\Tests\Models\ModelWithMutator;
@@ -11,6 +12,8 @@ use QCod\ImageUp\Exceptions\InvalidUploadFieldException;
 
 class ImageUpTest extends TestCase
 {
+    use ArraySubsetAsserts;
+
     protected $user;
 
     public function setUp(): void
