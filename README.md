@@ -127,6 +127,9 @@ class User extends Model {
             // if request file is don't have same name, default will be the field name
             'file_input' => 'photo',
             
+            // if field (here "avatar") don't exist in database or you wan't this field in database
+            'update_database' => false,
+            
             // a hook that is triggered before the image is saved
             'before_save' => BlurFilter::class,
             
