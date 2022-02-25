@@ -433,7 +433,7 @@ trait HasImageUploads
      */
     private function deleteUploadedFile($filePath)
     {
-        if ($this->getStorageDisk()->exists($filePath)) {
+        if ($filePath!=null && $this->getStorageDisk()->exists($filePath)) {
             $this->getStorageDisk()->delete($filePath);
         }
     }
