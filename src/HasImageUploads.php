@@ -2,43 +2,48 @@
 
 namespace QCod\ImageUp;
 
+use Exception;
+use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Contracts\Validation\Factory;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Contracts\Validation\Factory;
 use QCod\ImageUp\Exceptions\InvalidUploadFieldException;
 
 trait HasImageUploads
 {
     /**
+     * Flag to disable auto upload
+     *
+     * @var bool
+     */
+    protected $disableAutoUpload = false;
+    /**
      * All the images fields for model
      *
-     * @var array
+     * @var string[]
      */
     private $imagesFields = [];
-
     /**
      * All the file fields for model
      *
-     * @var array
+     * @var string[]
      */
     private $filesFields = [];
-
     /**
      * Image crop coordinates
      *
-     * @var
+     * @var int[]
      */
     private $cropCoordinates;
-
     /**
      * Upload field name
      *
      * @var string
      */
     private $uploadFieldName;
-
     /**
      * Upload field options
      *
@@ -47,16 +52,9 @@ trait HasImageUploads
     private $uploadFieldOptions;
 
     /**
-     * Flag to disable auto upload
-     *
-     * @var bool
-     */
-    protected $disableAutoUpload = false;
-
-    /**
      * Boot up the trait
      */
-    public static function bootHasImageUploads()
+    public static function bootHasImageUploads(): void
     {
         // hook up the events
         static::saved(function ($model) {
@@ -73,21 +71,35 @@ trait HasImageUploads
     }
 
     /**
-     * Get absolute url for a field
+     * Get absolute file url for a field
      *
-     * @param null $field
+     * @param  string|null  $field
+     *
      * @return mixed|string
      * @throws InvalidUploadFieldException
      */
-    public function imageUrl($field = null)
+    public function fileUrl(?string $field = null): string
+    {
+        return $this->imageUrl($field);
+    }
+
+    /**
+     * Get absolute url for a field
+     *
+     * @param  string|null  $field
+     *
+     * @return mixed|string
+     * @throws InvalidUploadFieldException
+     */
+    public function imageUrl(?string $field = null): string
     {
         $this->uploadFieldName = $this->getUploadFieldName($field);
         $this->uploadFieldOptions = $this->getUploadFieldOptions($this->uploadFieldName);
 
         // get the model attribute value
-        if(Arr::get($this->uploadFieldOptions, 'update_database',true)){
-            $attributeValue = $this->getOriginal($this->uploadFieldName); 
-        }else{
+        if (Arr::get($this->uploadFieldOptions, 'update_database', true)) {
+            $attributeValue = $this->getOriginal($this->uploadFieldName);
+        } else {
             $attributeValue = $this->getFileUploadPath($field);
         }
 
@@ -100,25 +112,195 @@ trait HasImageUploads
     }
 
     /**
-     * Get absolute file url for a field
+     * Get the upload field name
      *
-     * @param null $field
-     * @return mixed|string
+     * @param  null  $field
+     *
+     * @return mixed|null
+     */
+    public function getUploadFieldName($field = null)
+    {
+        if (!is_null($field)) {
+            return $field;
+        }
+
+        $imagesFields = $this->getDefinedUploadFields();
+        $fieldKey = Arr::first(array_keys($imagesFields));
+
+        // return first field name
+        return is_int($fieldKey)
+            ? $imagesFields[$fieldKey]
+            : $fieldKey;
+    }
+
+    /**
+     * Get all the image and file fields defined on model
+     *
+     * @return array
+     */
+    public function getDefinedUploadFields(): array
+    {
+        $fields = static::$imageFields ?? $this->imagesFields;
+
+        return array_merge($this->getDefinedFileFields(), $fields);
+    }
+
+    /**
+     * Get all the file fields defined on model
+     *
+     * @return array
+     */
+    public function getDefinedFileFields(): array
+    {
+        return static::$fileFields ?? $this->filesFields;
+    }
+
+    /**
+     * Get upload field options
+     *
+     * @param $field
+     *
+     * @return array
      * @throws InvalidUploadFieldException
      */
-    public function fileUrl($field = null)
+    public function getUploadFieldOptions($field = null): array
     {
-        return $this->imageUrl($field);
+        // get first option if no field provided
+        if (is_null($field)) {
+            $imagesFields = $this->getDefinedUploadFields();
+
+            if (!$imagesFields) {
+                throw new InvalidUploadFieldException(
+                    'No upload fields are defined in $imageFields/$fileFields array on model.'
+                );
+            }
+
+            $fieldKey = Arr::first(array_keys($imagesFields));
+            return is_int($fieldKey) ? [] : Arr::first($imagesFields);
+        }
+
+        // check if provided filed defined
+        if (!$this->hasImageField($field)) {
+            throw new InvalidUploadFieldException(
+                'Image/File field `' . $field . '` is not defined in $imageFields/$fileFields array on model.'
+            );
+        }
+
+        return Arr::get($this->getDefinedUploadFields(), $field, []);
+    }
+
+    /**
+     * Check if image filed is defined
+     *
+     * @param  string  $field
+     *
+     * @return bool
+     */
+    public function hasImageField(string $field): bool
+    {
+        return $this->hasUploadField($field, $this->getDefinedUploadFields());
+    }
+
+    /**
+     * Check is upload field is defined
+     *
+     * @param  string  $field
+     * @param  array  $definedField
+     *
+     * @return bool
+     */
+    private function hasUploadField(string $field, array $definedField): bool
+    {
+        // check for string key
+        if (Arr::has($definedField, $field)) {
+            return true;
+        }
+
+        // check for value
+        $found = false;
+        foreach ($definedField as $key => $val) {
+            $found = (is_numeric($key) && $val === $field);
+
+            if ($found) {
+                break;
+            }
+        }
+
+        return $found;
+    }
+
+    /**
+     * Get the full path to upload file
+     *
+     * @param  UploadedFile  $file
+     *
+     * @return string
+     */
+    protected function getFileUploadPath(UploadedFile $file): string
+    {
+        // check if path override is defined for current file
+        $pathOverrideMethod = Str::camel(strtolower($this->uploadFieldName) . 'UploadFilePath');
+
+        if (method_exists($this, $pathOverrideMethod)) {
+            return $this->getImageUploadPath() . '/' . $this->$pathOverrideMethod($file);
+        }
+
+        return $this->getImageUploadPath() . '/' . $file->hashName();
+    }
+
+    /**
+     * Get image upload path
+     *
+     * @return string
+     */
+    protected function getImageUploadPath(): string
+    {
+        // check for disk option
+        if ($pathInOption = Arr::get($this->uploadFieldOptions, 'path')) {
+            return $pathInOption;
+        }
+
+        return property_exists($this, 'imagesUploadPath')
+            ? trim($this->imagesUploadPath, '/')
+            : trim(config('imageup.upload_directory', 'uploads'), '/');
+    }
+
+    /**
+     * Get storage disk
+     *
+     * @return Filesystem
+     */
+    protected function getStorageDisk(): Filesystem
+    {
+        return Storage::disk($this->getImageUploadDisk());
+    }
+
+    /**
+     * Get image upload disk
+     *
+     * @return string
+     */
+    protected function getImageUploadDisk(): string
+    {
+        // check for disk option
+        if ($diskInOption = Arr::get($this->uploadFieldOptions, 'disk')) {
+            return $diskInOption;
+        }
+
+        return property_exists($this, 'imagesUploadDisk')
+            ? $this->imagesUploadDisk
+            : config('imageup.upload_disk', 'public');
     }
 
     /**
      * Get html image tag for a field if image present
      *
-     * @param null $field
-     * @param string $attributes
+     * @param  string|null  $field
+     * @param  string  $attributes
+     *
      * @return string
      */
-    public function imageTag($field = null, $attributes = '')
+    public function imageTag(?string $field = null, string $attributes = ''): string
     {
         // if no field found just return empty string
         if (!$this->hasImageField($field) || $this->hasFileField($field)) {
@@ -127,19 +309,47 @@ trait HasImageUploads
 
         try {
             return '<img src="' . $this->imageUrl($field) . '" ' . $attributes . ' />';
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
         }
+        return '';
+    }
+
+    /**
+     * Check if file filed is defined
+     *
+     * @param  string  $field
+     *
+     * @return bool
+     */
+    public function hasFileField(string $field): bool
+    {
+        return $this->hasUploadField($field, $this->getDefinedFileFields());
+    }
+
+    /**
+     * Upload a file
+     *
+     * @param $file
+     * @param  string|null  $field
+     *
+     * @return $this
+     * @throws InvalidUploadFieldException
+     */
+    public function uploadFile($file, ?string $field = null): self
+    {
+        return $this->uploadImage($file, $field);
     }
 
     /**
      * Upload and resize image
      *
-     * @param $imageFile
-     * @param null $field
+     * @param  UploadedFile  $imageFile
+     * @param  string|null  $field
+     *
      * @return $this
      * @throws InvalidUploadFieldException|\Exception
      */
-    public function uploadImage($imageFile, $field = null)
+    public function uploadImage(UploadedFile $imageFile, ?string $field = null): self
     {
         $this->uploadFieldName = $this->getUploadFieldName($field);
         $this->uploadFieldOptions = $this->getUploadFieldOptions($this->uploadFieldName);
@@ -162,31 +372,143 @@ trait HasImageUploads
         if ($currentFile != $filePath) {
             $this->deleteImage($currentFile);
         }
-        
+
         return $this;
     }
 
     /**
-     * Upload a file
+     * Validate image file with given rules in option
      *
      * @param $file
-     * @param null $field
-     * @return $this
-     * @throws InvalidUploadFieldException
+     * @param  string  $fieldName
+     * @param  array  $imageOptions
+     *
+     * @throws \Illuminate\Validation\ValidationException
      */
-    public function uploadFile($file, $field = null)
+    protected function validateImage($file, string $fieldName, array $imageOptions): void
     {
-        return $this->uploadImage($file, $field);
+        if ($rules = Arr::get($imageOptions, 'rules')) {
+            $this->validationFactory()->make(
+                [$fieldName => $file],
+                [$fieldName => $rules]
+            )->validate();
+        }
+    }
+
+    /**
+     * Get a validation factory instance.
+     *
+     * @return \Illuminate\Contracts\Validation\Factory
+     */
+    protected function validationFactory(): Factory
+    {
+        return app(Factory::class);
+    }
+
+    /**
+     * Process file upload
+     *
+     * @param  UploadedFile  $file
+     *
+     * @return string
+     * @throws \Exception
+     */
+    public function handleFileUpload(UploadedFile $file): string
+    {
+        // Trigger before save hook
+        $this->triggerBeforeSaveHook($file);
+
+        $filePath = $this->getFileUploadPath($file);
+
+        $this->getStorageDisk()->put($filePath, file_get_contents($file), 'public');
+
+        // Trigger after save hook
+        $this->triggerAfterSaveHook($file);
+
+        return $filePath;
+    }
+
+    /**
+     * Trigger user defined before save hook.
+     *
+     * @param $image
+     *
+     * @return $this
+     * @throws \Exception
+     */
+    protected function triggerBeforeSaveHook($image): self
+    {
+        if (isset($this->uploadFieldOptions['before_save'])) {
+            $this->triggerHook($this->uploadFieldOptions['before_save'], $image);
+        }
+
+        return $this;
+    }
+
+    /**
+     * This will try to trigger the hook depending on the user definition.
+     *
+     * @param $hook
+     * @param $image
+     *
+     * @throws \Exception
+     */
+    protected function triggerHook($hook, $image)
+    {
+        if (is_callable($hook)) {
+            $hook($image);
+        }
+
+        // We assume that the user is passing the hook class name
+        if (is_string($hook)) {
+            $instance = app($hook);
+            $instance->handle($image);
+        }
+    }
+
+    /**
+     * Trigger user defined after save hook.
+     *
+     * @param $image
+     *
+     * @return $this
+     * @throws \Exception
+     */
+    protected function triggerAfterSaveHook($image): self
+    {
+        if (isset($this->uploadFieldOptions['after_save'])) {
+            $this->triggerHook($this->uploadFieldOptions['after_save'], $image);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Process image upload
+     *
+     * @param $imageFile
+     *
+     * @return string
+     * @throws \Exception
+     */
+    protected function handleImageUpload($imageFile): string
+    {
+        // resize the image with given option
+        $image = $this->resizeImage($imageFile, $this->uploadFieldOptions);
+
+        // save the uploaded file on disk
+        return $this->saveImage($imageFile, $image);
     }
 
     /**
      * Resize image based on options
      *
      * @param $imageFile
-     * @param $imageFieldOptions array
+     * @param  array  $imageFieldOptions
+     *
      * @return \Intervention\Image\Image
      */
-    public function resizeImage($imageFile, $imageFieldOptions)
+    public function resizeImage($imageFile, array $imageFieldOptions): \Intervention\Image\Image
     {
         $image = Image::make($imageFile);
 
@@ -212,7 +534,7 @@ trait HasImageUploads
 
         // crop with x,y coordinate array
         if (is_array($crop) && count($crop) == 2) {
-            list($x, $y) = $crop;
+            [$x, $y] = $crop;
 
             $image->crop($width, $cropHeight, $x, $y);
 
@@ -229,315 +551,46 @@ trait HasImageUploads
     }
 
     /**
-     * Override Crop X and Y coordinates
+     * Check if image need resizing from options
      *
-     * @param $x integer
-     * @param $y integer
-     * @return $this
-     */
-    public function cropTo($x, $y)
-    {
-        $this->cropCoordinates = [$x, $y];
-        return $this;
-    }
-
-    /**
-     * Setter for model image fields
+     * @param  array  $imageFieldOptions
      *
-     * @param $fieldsOptions
-     * @return $this
-     */
-    public function setImagesField($fieldsOptions)
-    {
-        if (isset(static::$imageFields)) {
-            static::$imageFields = array_merge($this->getDefinedUploadFields(), $fieldsOptions);
-        } else {
-            $this->imagesFields = $fieldsOptions;
-        }
-
-        return $this;
-    }
-
-    /**
-     * Setter for model file fields
-     *
-     * @param $fieldsOptions
-     * @return $this
-     */
-    public function setFilesField($fieldsOptions)
-    {
-        if (isset(static::$fileFields)) {
-            static::$fileFields = array_merge($this->getDefinedUploadFields(), $fieldsOptions);
-        } else {
-            $this->filesFields = $fieldsOptions;
-        }
-
-        return $this;
-    }
-
-    /**
-     * Get upload field options
-     *
-     * @param $field
-     * @return array
-     * @throws InvalidUploadFieldException
-     */
-    public function getUploadFieldOptions($field = null)
-    {
-        // get first option if no field provided
-        if (is_null($field)) {
-            $imagesFields = $this->getDefinedUploadFields();
-
-            if (!$imagesFields) {
-                throw new InvalidUploadFieldException(
-                    'No upload fields are defined in $imageFields/$fileFields array on model.'
-                );
-            }
-
-            $fieldKey = Arr::first(array_keys($imagesFields));
-            $options = is_int($fieldKey) ? [] : Arr::first($imagesFields);
-
-            return $options;
-        }
-
-        // check if provided filed defined
-        if (!$this->hasImageField($field)) {
-            throw new InvalidUploadFieldException(
-                'Image/File field `' . $field . '` is not defined in $imageFields/$fileFields array on model.'
-            );
-        }
-
-        return Arr::get($this->getDefinedUploadFields(), $field, []);
-    }
-
-    /**
-     * Get all the image and file fields defined on model
-     *
-     * @return array
-     */
-    public function getDefinedUploadFields()
-    {
-        $fields = isset(static::$imageFields)
-            ? static::$imageFields
-            : $this->imagesFields;
-
-        return array_merge($this->getDefinedFileFields(), $fields);
-    }
-
-    /**
-     * Get all the file fields defined on model
-     *
-     * @return array
-     */
-    public function getDefinedFileFields()
-    {
-        return isset(static::$fileFields)
-            ? static::$fileFields
-            : $this->filesFields;
-    }
-
-    /**
-     * Get the upload field name
-     *
-     * @param null $field
-     * @return mixed|null
-     */
-    public function getUploadFieldName($field = null)
-    {
-        if (!is_null($field)) {
-            return $field;
-        }
-
-        $imagesFields = $this->getDefinedUploadFields();
-        $fieldKey = Arr::first(array_keys($imagesFields));
-
-        // return first field name
-        return is_int($fieldKey)
-            ? $imagesFields[$fieldKey]
-            : $fieldKey;
-    }
-
-    /**
-     * Check if image filed is defined
-     *
-     * @param $field
      * @return bool
      */
-    public function hasImageField($field)
+    protected function needResizing(array $imageFieldOptions): bool
     {
-        return $this->hasUploadField($field, $this->getDefinedUploadFields());
+        return Arr::has($imageFieldOptions, 'width') || Arr::has($imageFieldOptions, 'height');
     }
 
     /**
-     * Check if file filed is defined
+     * Get the crop option
      *
-     * @param $field
-     * @return bool
+     * @param  array  $imageFieldOptions
+     *
+     * @return array|boolean
      */
-    public function hasFileField($field)
+    protected function getCropOption(array $imageFieldOptions)
     {
-        return $this->hasUploadField($field, $this->getDefinedFileFields());
-    }
+        $crop = Arr::get($imageFieldOptions, 'crop', false);
 
-    /**
-     * Check is upload field is defined
-     *
-     * @param $field
-     * @param $definedField
-     * @return bool
-     */
-    private function hasUploadField($field, $definedField)
-    {
-        // check for string key
-        if (Arr::has($definedField, $field)) {
-            return true;
+        // check for crop override
+        if (isset($this->cropCoordinates) && count($this->cropCoordinates) == 2) {
+            $crop = $this->cropCoordinates;
         }
 
-        // check for value
-        $found = false;
-        foreach ($definedField as $key => $val) {
-            $found = (is_numeric($key) && $val === $field);
-
-            if ($found) {
-                break;
-            }
-        }
-
-        return $found;
-    }
-
-    /**
-     * Delete an Image
-     *
-     * @param $filePath
-     */
-    public function deleteImage($filePath)
-    {
-        return $this->deleteUploadedFile($filePath);
-    }
-
-    /**
-     * Delete a file
-     *
-     * @param $filePath
-     */
-    public function deleteFile($filePath)
-    {
-        return $this->deleteUploadedFile($filePath);
-    }
-
-    /**
-     * Delete a file from disk
-     *
-     * @param $filePath
-     */
-    private function deleteUploadedFile($filePath)
-    {
-        if ($this->getStorageDisk()->exists($filePath)) {
-            $this->getStorageDisk()->delete($filePath);
-        }
-    }
-
-    /**
-     * Get image upload path
-     *
-     * @return string
-     */
-    protected function getImageUploadPath()
-    {
-        // check for disk option
-        if ($pathInOption = Arr::get($this->uploadFieldOptions, 'path')) {
-            return $pathInOption;
-        }
-
-        return property_exists($this, 'imagesUploadPath')
-            ? trim($this->imagesUploadPath, '/')
-            : trim(config('imageup.upload_directory', 'uploads'), '/');
-    }
-
-    /**
-     * Get the full path to upload file
-     *
-     * @param $file
-     * @return string
-     */
-    protected function getFileUploadPath($file)
-    {
-        // check if path override is defined for current file
-        $pathOverrideMethod = Str::camel(strtolower($this->uploadFieldName) . 'UploadFilePath');
-
-        if (method_exists($this, $pathOverrideMethod)) {
-            return $this->getImageUploadPath() . '/' . $this->$pathOverrideMethod($file);
-        }
-
-        return $this->getImageUploadPath() . '/' . $file->hashName();
-    }
-
-    /**
-     * Get image upload disk
-     *
-     * @return string
-     */
-    protected function getImageUploadDisk()
-    {
-        // check for disk option
-        if ($diskInOption = Arr::get($this->uploadFieldOptions, 'disk')) {
-            return $diskInOption;
-        }
-
-        return property_exists($this, 'imagesUploadDisk')
-            ? $this->imagesUploadDisk
-            : config('imageup.upload_disk', 'public');
-    }
-
-    /**
-     * Check if auto upload is allowed
-     *
-     * @return boolean
-     */
-    protected function canAutoUploadImages()
-    {
-        return property_exists($this, 'autoUploadImages')
-            ? $this->autoUploadImages
-            : config('imageup.auto_upload_images', false);
-    }
-
-    /**
-     * Get storage disk
-     *
-     * @return \Illuminate\Contracts\Filesystem\Filesystem
-     */
-    protected function getStorageDisk()
-    {
-        return Storage::disk($this->getImageUploadDisk());
-    }
-
-    /**
-     * Validate image file with given rules in option
-     *
-     * @param $file
-     * @param $fieldName
-     * @param $imageOptions
-     */
-    protected function validateImage($file, $fieldName, $imageOptions)
-    {
-        if ($rules = Arr::get($imageOptions, 'rules')) {
-            $this->validationFactory()->make(
-                [$fieldName => $file],
-                [$fieldName => $rules]
-            )->validate();
-        }
+        return $crop;
     }
 
     /**
      * Save the image to disk
      *
-     * @param $imageFile
+     * @param  UploadedFile  $imageFile
      * @param $image
+     *
      * @return string
      * @throws \Exception
      */
-    protected function saveImage($imageFile, $image)
+    protected function saveImage(UploadedFile $imageFile, $image): string
     {
         // Trigger before save hook
         $this->triggerBeforeSaveHook($image);
@@ -552,7 +605,7 @@ trait HasImageUploads
 
         $this->getStorageDisk()->put(
             $imagePath,
-            (string)$image->encode(null, $imageQuality),
+            (string) $image->encode(null, $imageQuality),
             'public'
         );
 
@@ -568,52 +621,128 @@ trait HasImageUploads
     /**
      * update the model field
      *
-     * @param $imagePath
-     * @param $imageFieldName
+     * @param  string  $imagePath
+     * @param  string  $imageFieldName
      */
-    protected function updateModel($imagePath, $imageFieldName)
+    protected function updateModel(string $imagePath, string $imageFieldName): void
     {
         // check if update_database = false (default: true)
         $imagesFields = $this->getDefinedUploadFields();
-        $actualField=Arr::get($imagesFields, $imageFieldName);
-        $updateAuthorized=Arr::get($actualField, 'update_database',true);
+        $actualField = Arr::get($imagesFields, $imageFieldName);
+        $updateAuthorized = Arr::get($actualField, 'update_database', true);
 
         // update model (if update_database=true or not set)
-        if($updateAuthorized){
+        if ($updateAuthorized) {
             $this->attributes[$imageFieldName] = $imagePath;
             $dispatcher = $this->getEventDispatcher();
             self::unsetEventDispatcher();
             $this->save();
-            self::setEventDispatcher($dispatcher); 
+            self::setEventDispatcher($dispatcher);
         }
     }
 
     /**
-     * Get the crop option
+     * Delete an Image
      *
-     * @param $imageFieldOptions
-     * @return array|boolean
+     * @param  string  $filePath
      */
-    protected function getCropOption($imageFieldOptions)
+    public function deleteImage(string $filePath): void
     {
-        $crop = Arr::get($imageFieldOptions, 'crop', false);
-
-        // check for crop override
-        if (isset($this->cropCoordinates) && count($this->cropCoordinates) == 2) {
-            $crop = $this->cropCoordinates;
-        }
-
-        return $crop;
+        $this->deleteUploadedFile($filePath);
     }
 
     /**
-     * Get a validation factory instance.
+     * Delete a file from disk
      *
-     * @return \Illuminate\Contracts\Validation\Factory
+     * @param  string  $filePath
      */
-    protected function validationFactory()
+    private function deleteUploadedFile(string $filePath): void
     {
-        return app(Factory::class);
+        if ($this->getStorageDisk()->exists($filePath)) {
+            $this->getStorageDisk()->delete($filePath);
+        }
+    }
+
+    /**
+     * Override Crop X and Y coordinates
+     *
+     * @param  int  $x
+     * @param  int  $y
+     *
+     * @return $this
+     */
+    public function cropTo(int $x, int $y): self
+    {
+        $this->cropCoordinates = [$x, $y];
+        return $this;
+    }
+
+    /**
+     * Setter for model image fields
+     *
+     * @param  array  $fieldsOptions
+     *
+     * @return $this
+     */
+    public function setImagesField(array $fieldsOptions): self
+    {
+        if (isset(static::$imageFields)) {
+            static::$imageFields = array_merge($this->getDefinedUploadFields(), $fieldsOptions);
+        } else {
+            $this->imagesFields = $fieldsOptions;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Setter for model file fields
+     *
+     * @param  array  $fieldsOptions
+     *
+     * @return $this
+     */
+    public function setFilesField(array $fieldsOptions): self
+    {
+        if (isset(static::$fileFields)) {
+            static::$fileFields = array_merge($this->getDefinedUploadFields(), $fieldsOptions);
+        } else {
+            $this->filesFields = $fieldsOptions;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Delete a file
+     *
+     * @param  string  $filePath
+     */
+    public function deleteFile(string $filePath): void
+    {
+        $this->deleteUploadedFile($filePath);
+    }
+
+    /**
+     * Disable auto upload
+     *
+     * @return $this
+     */
+    public function disableAutoUpload(): self
+    {
+        $this->disableAutoUpload = true;
+        return $this;
+    }
+
+    /**
+     * Enable auto upload
+     *
+     * @return $this
+     */
+    public function enableAutoUpload(): self
+    {
+        $this->disableAutoUpload = false;
+        return $this;
     }
 
     /**
@@ -622,7 +751,7 @@ trait HasImageUploads
      * @throws InvalidUploadFieldException
      * @throws \Exception
      */
-    protected function autoUpload()
+    protected function autoUpload(): void
     {
         foreach ($this->getDefinedUploadFields() as $key => $val) {
             $field = is_int($key) ? $val : $key;
@@ -649,9 +778,21 @@ trait HasImageUploads
     }
 
     /**
+     * Check if auto upload is allowed
+     *
+     * @return bool
+     */
+    protected function canAutoUploadImages(): bool
+    {
+        return property_exists($this, 'autoUploadImages')
+            ? $this->autoUploadImages
+            : config('imageup.auto_upload_images', false);
+    }
+
+    /**
      * Auto delete image handler
      */
-    protected function autoDeleteImage()
+    protected function autoDeleteImage(): void
     {
         if (config('imageup.auto_delete_images')) {
             foreach ($this->getDefinedUploadFields() as $field => $options) {
@@ -659,131 +800,5 @@ trait HasImageUploads
                 $this->deleteImage($this->getOriginal($field));
             }
         }
-    }
-
-    /**
-     * Check if image need resizing from options
-     *
-     * @param $imageFieldOptions
-     * @return bool
-     */
-    protected function needResizing($imageFieldOptions)
-    {
-        return Arr::has($imageFieldOptions, 'width') || Arr::has($imageFieldOptions, 'height');
-    }
-
-    /**
-     * This will try to trigger the hook depending on the user definition.
-     *
-     * @param $hook
-     * @param $image
-     *
-     * @throws \Exception
-     */
-    protected function triggerHook($hook, $image)
-    {
-        if (is_callable($hook)) {
-            $hook($image);
-        }
-
-        // We assume that the user is passing the hook class name
-        if (is_string($hook)) {
-            $instance = app($hook);
-            $instance->handle($image);
-        }
-    }
-
-    /**
-     * Trigger user defined before save hook.
-     *
-     * @param $image
-     *
-     * @return $this
-     * @throws \Exception
-     */
-    protected function triggerBeforeSaveHook($image)
-    {
-        if (isset($this->uploadFieldOptions['before_save'])) {
-            $this->triggerHook($this->uploadFieldOptions['before_save'], $image);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Trigger user defined after save hook.
-     *
-     * @param $image
-     *
-     * @return $this
-     * @throws \Exception
-     */
-    protected function triggerAfterSaveHook($image)
-    {
-        if (isset($this->uploadFieldOptions['after_save'])) {
-            $this->triggerHook($this->uploadFieldOptions['after_save'], $image);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Process image upload
-     *
-     * @param $imageFile
-     * @return string
-     * @throws \Exception
-     */
-    protected function handleImageUpload($imageFile)
-    {
-        // resize the image with given option
-        $image = $this->resizeImage($imageFile, $this->uploadFieldOptions);
-
-        // save the uploaded file on disk
-        return $this->saveImage($imageFile, $image);
-    }
-
-    /**
-     * Process file upload
-     *
-     * @param $file
-     * @return string
-     * @throws \Exception
-     */
-    public function handleFileUpload($file)
-    {
-        // Trigger before save hook
-        $this->triggerBeforeSaveHook($file);
-
-        $filePath = $this->getFileUploadPath($file);
-
-        $this->getStorageDisk()->put($filePath, file_get_contents($file), 'public');
-
-        // Trigger after save hook
-        $this->triggerAfterSaveHook($file);
-
-        return $filePath;
-    }
-
-    /**
-     * Disable auto upload
-     *
-     * @return $this
-     */
-    public function disableAutoUpload()
-    {
-        $this->disableAutoUpload = true;
-        return $this;
-    }
-
-    /**
-     * Enable auto upload
-     *
-     * @return $this
-     */
-    public function enableAutoUpload()
-    {
-        $this->disableAutoUpload = false;
-        return $this;
     }
 }
