@@ -369,7 +369,7 @@ trait HasImageUploads
         $this->updateModel($filePath, $this->uploadFieldName);
 
         // delete old file
-        if ($currentFile != $filePath) {
+        if (!empty($currentFile) && $currentFile != $filePath) {
             $this->deleteImage($currentFile);
         }
 
