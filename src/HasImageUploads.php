@@ -797,7 +797,9 @@ trait HasImageUploads
         if (config('imageup.auto_delete_images')) {
             foreach ($this->getDefinedUploadFields() as $field => $options) {
                 $field = is_numeric($field) ? $options : $field;
-                $this->deleteImage($this->getOriginal($field));
+                if (!is_null($this->getOriginal($field))) {
+                    $this->deleteImage($this->getOriginal($field));
+                }
             }
         }
     }
