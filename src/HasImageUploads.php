@@ -106,7 +106,8 @@ trait HasImageUploads
         // check for placeholder defined in option
         $placeholderImage = Arr::get($this->uploadFieldOptions, 'placeholder');
 
-        return (empty($attributeValue) && $placeholderImage)
+        $exists = !empty($attributeValue) && $this->getStorageDisk()->exists($attributeValue);
+        return (!$exists && $placeholderImage)
             ? $placeholderImage
             : $this->getStorageDisk()->url($attributeValue);
     }
