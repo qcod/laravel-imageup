@@ -158,6 +158,14 @@ trait HasImageUploads
     {
         return static::$fileFields ?? $this->filesFields;
     }
+    /**
+     * Get after_upload hook defined on model
+     *
+     */
+    public function getAfterUploadHook()
+    {
+        return static::$afterUploadHook ?? $this->afterUploadHook;
+    }
 
     /**
      * Get upload field options
@@ -494,7 +502,7 @@ trait HasImageUploads
      */
     protected function triggerAfterUploadHook(): self
     {
-        $hook = $this->afterUploadHook;
+        $hook = $this->getAfterUploadHook();
         if (isset($hook)) {
             if (is_callable($hook)) {
                 $hook($this);
