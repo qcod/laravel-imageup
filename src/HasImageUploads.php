@@ -164,7 +164,7 @@ trait HasImageUploads
      */
     public function getAfterUploadHook()
     {
-        return static::$afterUploadHook ?? $this->afterUploadHook;
+        return static::$uploadedHook ?? $this->afterUploadHook;
     }
 
     /**
