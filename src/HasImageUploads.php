@@ -27,6 +27,10 @@ trait HasImageUploads
      */
     private $imagesFields = [];
     /**
+     * After all upload hook
+     */
+    private $afterUploadHook;
+    /**
      * All the file fields for model
      *
      * @var string[]
@@ -153,6 +157,14 @@ trait HasImageUploads
     public function getDefinedFileFields(): array
     {
         return static::$fileFields ?? $this->filesFields;
+    }
+    /**
+     * Get after_upload hook defined on model
+     *
+     */
+    public function getAfterUploadHook()
+    {
+        return static::$uploadedHook ?? $this->afterUploadHook;
     }
 
     /**
@@ -482,6 +494,28 @@ trait HasImageUploads
 
         return $this;
     }
+    /**
+     * Trigger user defined after upload hook.
+     *
+     * @return $this
+     * @throws \Exception
+     */
+    protected function triggerAfterUploadHook(): self
+    {
+        $hook = $this->getAfterUploadHook();
+        if (isset($hook)) {
+            if (is_callable($hook)) {
+                $hook($this);
+            }
+            // We assume that the user is passing the hook class name
+            if (is_string($hook)) {
+                $instance = app($hook);
+                $instance->handle($this);
+            }
+        }
+
+        return $this;
+    }
 
     /**
      * Process image upload
@@ -753,6 +787,7 @@ trait HasImageUploads
      */
     protected function autoUpload(): void
     {
+        $isUpload = false;
         foreach ($this->getDefinedUploadFields() as $key => $val) {
             $field = is_int($key) ? $val : $key;
             $options = Arr::wrap($val);
@@ -774,6 +809,10 @@ trait HasImageUploads
                     $field
                 );
             }
+            $isUpload = true;
+        }
+        if ($isUpload) {
+            $this->triggerAfterUploadHook();
         }
     }
 
