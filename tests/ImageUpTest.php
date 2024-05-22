@@ -207,11 +207,40 @@ class ImageUpTest extends TestCase
     }
 
     /**
-     * it gives image url if image saved in db
+     * it gives image url if image saved in db and file exists
      *
      * @test
      */
-    public function it_gives_image_url_if_image_saved_in_db()
+    public function it_gives_image_url_if_image_saved_in_db_and_file_exists()
+    {
+        $this->user = new User();
+        $this->user->setImagesField([
+            'avatar' => ['placeholder' => '/images/cover-placeholder.png']
+        ]);
+
+        $this->user->forceFill([
+            'name' => 'John',
+            'email' => 'John@email.com',
+            'password' => 'secret',
+            'avatar' => 'uploads/my-avatar.png'
+        ])->save();
+
+        Storage::fake('public');
+        $image = UploadedFile::fake()->image('my-avatar.png', 400, 500);
+        $this->user->uploadImage($image);
+
+        $this->assertEquals($this->user->getOriginal('avatar'), 'uploads/'.$image->hashName());
+
+        $this->assertEquals('/storage/uploads/' . $image->hashName(), $this->user->imageUrl());
+        $this->assertEquals('/storage/uploads/' . $image->hashName(), $this->user->imageUrl('avatar'));
+    }
+
+    /**
+     * it gives image url if image saved in db and file not exists
+     *
+     * @test
+     */
+    public function it_gives_placeholder_url_if_image_saved_in_db_and_file_not_exists()
     {
         $this->user = new User();
         $this->user->setImagesField([
@@ -227,8 +256,8 @@ class ImageUpTest extends TestCase
 
         $this->assertEquals($this->user->getOriginal('avatar'), 'uploads/my-avatar.png');
 
-        $this->assertEquals('/storage/uploads/my-avatar.png', $this->user->imageUrl());
-        $this->assertEquals('/storage/uploads/my-avatar.png', $this->user->imageUrl('avatar'));
+        $this->assertEquals('/images/cover-placeholder.png', $this->user->imageUrl());
+        $this->assertEquals('/images/cover-placeholder.png', $this->user->imageUrl('avatar'));
     }
 
     /**
