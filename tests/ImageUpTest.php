@@ -2,7 +2,6 @@
 
 namespace QCod\ImageUp\Tests;
 
-use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Illuminate\Http\UploadedFile;
 use QCod\ImageUp\Tests\Models\User;
 use QCod\ImageUp\Tests\Models\ModelWithMutator;
@@ -12,8 +11,6 @@ use QCod\ImageUp\Exceptions\InvalidUploadFieldException;
 
 class ImageUpTest extends TestCase
 {
-    use ArraySubsetAsserts;
-
     protected $user;
 
     public function setUp(): void
@@ -32,9 +29,8 @@ class ImageUpTest extends TestCase
     /**
      * it_gets_image_field_options
      *
-     * @test
      */
-    public function it_gets_image_field_options()
+    public function test_it_gets_image_field_options()
     {
         $this->user = new ImageFieldOptionsModel();
 
@@ -49,9 +45,8 @@ class ImageUpTest extends TestCase
     /**
      * it_throws_exception_if_image_field_not_found
      *
-     * @test
      */
-    public function it_throws_exception_if_image_field_not_found()
+    public function test_it_throws_exception_if_image_field_not_found()
     {
         $this->user = new User();
 
@@ -62,9 +57,8 @@ class ImageUpTest extends TestCase
     /**
      * it sets image field with options
      *
-     * @test
      */
-    public function it_sets_image_field_with_options()
+    public function test_it_sets_image_field_with_options()
     {
         $this->user = new User();
 
@@ -77,9 +71,8 @@ class ImageUpTest extends TestCase
     /**
      * it sets image fields with mixed option and without options
      *
-     * @test
      */
-    public function it_sets_image_fields_with_mixed_option_and_without_options()
+    public function test_it_sets_image_fields_with_mixed_option_and_without_options()
     {
         $this->user = new User();
 
@@ -94,9 +87,8 @@ class ImageUpTest extends TestCase
     /**
      * it sets image fields without any options
      *
-     * @test
      */
-    public function it_sets_image_fields_without_any_options()
+    public function test_it_sets_image_fields_without_any_options()
     {
         $this->user = new User();
 
@@ -111,9 +103,8 @@ class ImageUpTest extends TestCase
     /**
      * it returns first field if no key provided
      *
-     * @test
      */
-    public function it_returns_first_field_if_no_key_provided()
+    public function test_it_returns_first_field_if_no_key_provided()
     {
         $this->user = new User();
         $fieldOption = [
@@ -128,9 +119,8 @@ class ImageUpTest extends TestCase
     /**
      * it returns field name of first field
      *
-     * @test
      */
-    public function it_returns_field_name_of_first_field()
+    public function test_it_returns_field_name_of_first_field()
     {
         $this->user = new User();
         $fieldOption = [
@@ -146,9 +136,8 @@ class ImageUpTest extends TestCase
     /**
      * it returns first field without any options
      *
-     * @test
      */
-    public function it_returns_first_field_without_any_options()
+    public function test_it_returns_first_field_without_any_options()
     {
         $this->user = new User();
         $fieldOption = [
@@ -166,9 +155,8 @@ class ImageUpTest extends TestCase
     /**
      * it uploads image and saves in db
      *
-     * @test
      */
-    public function it_uploads_image_and_saves_in_db()
+    public function test_it_uploads_image_and_saves_in_db()
     {
         $this->user = $this->createUser();
         Storage::fake('public');
@@ -187,9 +175,8 @@ class ImageUpTest extends TestCase
     /**
      * it uploads image by field name
      *
-     * @test
      */
-    public function it_uploads_image_by_field_name()
+    public function test_it_uploads_image_by_field_name()
     {
         $this->user = $this->createUser();
         $this->user->setImagesField(['cover' => ['width' => 100]]);
@@ -209,9 +196,8 @@ class ImageUpTest extends TestCase
     /**
      * it gives image url if image saved in db
      *
-     * @test
      */
-    public function it_gives_image_url_if_image_saved_in_db()
+    public function test_it_gives_image_url_if_image_saved_in_db()
     {
         $this->user = new User();
         $this->user->setImagesField([
@@ -225,7 +211,7 @@ class ImageUpTest extends TestCase
             'avatar' => 'uploads/my-avatar.png'
         ])->save();
 
-        $this->assertEquals($this->user->getOriginal('avatar'), 'uploads/my-avatar.png');
+        $this->assertEquals($this->user->getRawOriginal('avatar'), 'uploads/my-avatar.png');
 
         $this->assertEquals('/storage/uploads/my-avatar.png', $this->user->imageUrl());
         $this->assertEquals('/storage/uploads/my-avatar.png', $this->user->imageUrl('avatar'));
@@ -234,9 +220,8 @@ class ImageUpTest extends TestCase
     /**
      * it gives placeholder image url if file has no image and placeholder option is defined
      *
-     * @test
      */
-    public function it_gives_placeholder_image_url_if_file_has_no_image_and_placeholder_option_is_defined()
+    public function test_it_gives_placeholder_image_url_if_file_has_no_image_and_placeholder_option_is_defined()
     {
         $this->user = new User();
         $this->user->setImagesField([
@@ -258,9 +243,8 @@ class ImageUpTest extends TestCase
     /**
      * it validate the uploaded file using provided rules
      *
-     * @test
      */
-    public function it_validate_the_uploaded_file_using_provided_rules()
+    public function test_it_validate_the_uploaded_file_using_provided_rules()
     {
         $this->user = new User();
         $this->user->setImagesField([
@@ -275,7 +259,7 @@ class ImageUpTest extends TestCase
         // it should not upload image
         $this->expectException(ValidationException::class);
         $this->user->uploadImage($doc);
-        $this->assertNull($this->user->getOriginal('avatar'));
+        $this->assertNull($this->user->getRawOriginal('avatar'));
 
         // it should upload image
         $image = UploadedFile::fake()->image('avatar.jpg');
@@ -290,9 +274,8 @@ class ImageUpTest extends TestCase
     /**
      * it uploads and resize image in proportion if crop is not set
      *
-     * @test
      */
-    public function it_uploads_and_resize_image_in_proportion_if_crop_is_not_set()
+    public function test_it_uploads_and_resize_image_in_proportion_if_crop_is_not_set()
     {
         $this->user = $this->createUser([], [
             'avatar' => [
@@ -319,9 +302,8 @@ class ImageUpTest extends TestCase
     /**
      * it upload and resize image by given height
      *
-     * @test
      */
-    public function it_upload_and_resize_image_by_given_height()
+    public function test_it_upload_and_resize_image_by_given_height()
     {
         $this->user = $this->createUser([], [
             'avatar' => [
@@ -347,9 +329,8 @@ class ImageUpTest extends TestCase
     /**
      * it uses disk specified in field option
      *
-     * @test
      */
-    public function it_uses_disk_specified_in_field_option()
+    public function test_it_uses_disk_specified_in_field_option()
     {
         $this->user = $this->createUser([], [
             'avatar' => [
@@ -372,9 +353,8 @@ class ImageUpTest extends TestCase
     /**
      * it uses path specified in field option
      *
-     * @test
      */
-    public function it_uses_path_specified_in_field_option()
+    public function test_it_uses_path_specified_in_field_option()
     {
         $this->user = $this->createUser([], [
             'avatar' => [
@@ -392,15 +372,14 @@ class ImageUpTest extends TestCase
         // Assert the file was stored...
         Storage::disk('public')->assertExists('avatar/' . $image->hashName());
         Storage::disk('public')->assertMissing('uploads/' . $image->hashName());
-        $this->assertEquals('avatar/' . $image->hashName(), $this->user->fresh()->getOriginal('avatar'));
+        $this->assertEquals('avatar/' . $image->hashName(), $this->user->fresh()->getRawOriginal('avatar'));
     }
 
     /**
      * it auto uploads images if config is set do it
      *
-     * @test
      */
-    public function it_auto_uploads_images_if_config_is_set_do_it()
+    public function test_it_auto_uploads_images_if_config_is_set_do_it()
     {
         Storage::fake('public');
         $image = UploadedFile::fake()->image('avatar.jpg')->size(100);
@@ -420,9 +399,8 @@ class ImageUpTest extends TestCase
     /**
      * it auto upload images
      *
-     * @test
      */
-    public function it_auto_upload_images()
+    public function test_it_auto_upload_images()
     {
         Storage::fake('public');
 
@@ -457,9 +435,8 @@ class ImageUpTest extends TestCase
     /**
      * it dont auto upload files if disabled
      *
-     * @test
      */
-    public function it_dont_auto_upload_files_if_disabled()
+    public function test_it_dont_auto_upload_files_if_disabled()
     {
         Storage::fake('public');
 
@@ -483,16 +460,15 @@ class ImageUpTest extends TestCase
         Storage::disk('public')->assertMissing('uploads/' . $avatar->hashName());
         Storage::disk('public')->assertMissing('uploads/' . $cover->hashName());
 
-        $this->assertNull($this->user->getOriginal('avatar'));
+        $this->assertNull($this->user->getRawOriginal('avatar'));
         $this->assertNull($this->user->getOriginal('cover'));
     }
 
     /**
      * it auto upload images without options
      *
-     * @test
      */
-    public function it_auto_upload_images_without_options()
+    public function test_it_auto_upload_images_without_options()
     {
         Storage::fake('public');
 
@@ -526,9 +502,8 @@ class ImageUpTest extends TestCase
     /**
      * it auto upload images with mixed options
      *
-     * @test
      */
-    public function it_auto_upload_images_with_mixed_options()
+    public function test_it_auto_upload_images_with_mixed_options()
     {
         Storage::fake('public');
 
@@ -562,9 +537,8 @@ class ImageUpTest extends TestCase
     /**
      * it triggers before save hook from a class.
      *
-     * @test
      */
-    public function it_triggers_before_save_hook_from_a_class()
+    public function test_it_triggers_before_save_hook_from_a_class()
     {
         $this->user = $this->createUser([], [
             'avatar' => [
@@ -588,9 +562,8 @@ class ImageUpTest extends TestCase
     /**
      * it triggers before save hook from a callback.
      *
-     * @test
      */
-    public function it_triggers_before_save_hook_from_a_callback()
+    public function test_it_triggers_before_save_hook_from_a_callback()
     {
         $this->user = $this->createUser([], [
             'avatar' => [
@@ -616,9 +589,8 @@ class ImageUpTest extends TestCase
     /**
      * it triggers after save hook from a class.
      *
-     * @test
      */
-    public function it_triggers_after_save_hook_from_a_class()
+    public function test_it_triggers_after_save_hook_from_a_class()
     {
         $this->user = $this->createUser([], [
             'avatar' => [
@@ -644,9 +616,8 @@ class ImageUpTest extends TestCase
     /**
      * it triggers after save hook from a callback.
      *
-     * @test
      */
-    public function it_triggers_after_save_hook_from_a_callback()
+    public function test_it_triggers_after_save_hook_from_a_callback()
     {
         $this->user = $this->createUser([], [
             'avatar' => [
@@ -680,7 +651,7 @@ class ImageUpTest extends TestCase
      *
      * test
      */
-    public function it_gives_correct_value_when_model_has_mutator_method()
+    public function test_it_gives_correct_value_when_model_has_mutator_method()
     {
         $this->user = new ModelWithMutator();
 
@@ -691,7 +662,7 @@ class ImageUpTest extends TestCase
             'avatar' => 'uploads/my-avatar.png'
         ])->save();
 
-        $this->assertEquals($this->user->getOriginal('avatar'), 'uploads/my-avatar.png');
+        $this->assertEquals($this->user->getRawOriginal('avatar'), 'uploads/my-avatar.png');
         $this->assertEquals('/storage/uploads/my-avatar.png', $this->user->imageUrl('avatar'));
         $this->assertEquals('/storage/uploads/my-avatar.png', $this->user->avatar);
     }
@@ -701,7 +672,7 @@ class ImageUpTest extends TestCase
      *
      * test
      */
-    public function it_gives_correct_value_using_path_specified_in_field_option_when_model_has_mutator_method()
+    public function test_it_gives_correct_value_using_path_specified_in_field_option_when_model_has_mutator_method()
     {
         $this->user = new ModelWithMutator();
         $this->user->setImagesField([
@@ -720,23 +691,22 @@ class ImageUpTest extends TestCase
         Storage::fake('public');
 
         $image = UploadedFile::fake()->image('avatar.jpg');
-        $this->assertNull($this->user->getOriginal('avatar'));
+        $this->assertNull($this->user->getRawOriginal('avatar'));
         $this->user->uploadImage($image);
 
         // Assert the file was stored...
         Storage::disk('public')->assertExists('avatar/' . $image->hashName());
         Storage::disk('public')->assertMissing('uploads/' . $image->hashName());
 
-        $this->assertEquals('avatar/' . $image->hashName(), $this->user->fresh()->getOriginal('avatar'));
+        $this->assertEquals('avatar/' . $image->hashName(), $this->user->fresh()->getRawOriginal('avatar'));
         $this->assertEquals('/storage/avatar/' . $image->hashName(), $this->user->avatar);
     }
 
     /**
      * it can override file path and filename if method defined on model
      *
-     * @test
      */
-    public function it_can_override_file_path_and_filename_if_method_defined_on_model()
+    public function test_it_can_override_file_path_and_filename_if_method_defined_on_model()
     {
         $this->user = new CustomFilenameModel([
             'name' => 'Saqueib',
@@ -753,7 +723,7 @@ class ImageUpTest extends TestCase
         // Assert the file was stored...
         Storage::disk('public')->assertExists('avatar/custome-avatar.jpg');
         Storage::disk('public')->assertMissing('uploads/custome-avatar.jpg');
-        $this->assertEquals('avatar/custome-avatar.jpg', $this->user->fresh()->getOriginal('avatar'));
+        $this->assertEquals('avatar/custome-avatar.jpg', $this->user->fresh()->getRawOriginal('avatar'));
     }
 }
 

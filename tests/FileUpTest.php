@@ -19,9 +19,8 @@ class FileUpTest extends TestCase
     /**
      * it gets defined file fields
      *
-     * @test
      */
-    public function it_gets_defined_file_fields()
+    public function test_it_gets_defined_file_fields()
     {
         $user = new FileUploadModel();
 
@@ -32,9 +31,8 @@ class FileUpTest extends TestCase
     /**
      * it uploads file and saves in db
      *
-     * @test
      */
-    public function it_uploads_file_and_saves_in_db()
+    public function test_it_uploads_file_and_saves_in_db()
     {
         Storage::fake('public');
         $user = new FileUploadModel([
@@ -58,9 +56,8 @@ class FileUpTest extends TestCase
     /**
      * it gives file url if file saved in db
      *
-     * @test
      */
-    public function it_gives_file_url_if_file_saved_in_db()
+    public function test_it_gives_file_url_if_file_saved_in_db()
     {
         $user = FileUploadModel::create([
             'name' => 'John',
@@ -78,9 +75,8 @@ class FileUpTest extends TestCase
     /**
      * it auto upload files
      *
-     * @test
      */
-    public function it_auto_upload_files()
+    public function test_it_auto_upload_files()
     {
         Storage::fake('public');
 

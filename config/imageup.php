@@ -1,6 +1,11 @@
 <?php
 
 return [
+    /*
+     * Intervention Image v2 driver used for image manipulation.
+     */
+    'image_driver' => 'gd',
+
 
     /**
      * Default upload storage disk
