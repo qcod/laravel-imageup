@@ -9,7 +9,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\ImageManager;
 use QCod\ImageUp\Exceptions\InvalidUploadFieldException;
 
 trait HasImageUploads
@@ -98,7 +98,7 @@ trait HasImageUploads
 
         // get the model attribute value
         if (Arr::get($this->uploadFieldOptions, 'update_database', true)) {
-            $attributeValue = $this->getOriginal($this->uploadFieldName);
+            $attributeValue = $this->getRawOriginal($this->uploadFieldName);
         } else {
             $attributeValue = $this->getFileUploadPath($field);
         }
@@ -363,7 +363,7 @@ trait HasImageUploads
             : $this->handleImageUpload($imageFile);
 
         // hold old file
-        $currentFile = $this->getOriginal($this->uploadFieldName);
+        $currentFile = $this->getRawOriginal($this->uploadFieldName);
 
         // update the model with field name
         $this->updateModel($filePath, $this->uploadFieldName);
@@ -510,7 +510,9 @@ trait HasImageUploads
      */
     public function resizeImage($imageFile, array $imageFieldOptions): \Intervention\Image\Image
     {
-        $image = Image::make($imageFile);
+        $image = (new ImageManager([
+            'driver' => config('imageup.image_driver', 'gd'),
+        ]))->make($imageFile);
 
         // check if resize needed
         if (!$this->needResizing($imageFieldOptions)) {
@@ -797,8 +799,8 @@ trait HasImageUploads
         if (config('imageup.auto_delete_images')) {
             foreach ($this->getDefinedUploadFields() as $field => $options) {
                 $field = is_numeric($field) ? $options : $field;
-                if (!is_null($this->getOriginal($field))) {
-                    $this->deleteImage($this->getOriginal($field));
+                if (!is_null($this->getRawOriginal($field))) {
+                    $this->deleteImage($this->getRawOriginal($field));
                 }
             }
         }

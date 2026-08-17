@@ -6,11 +6,23 @@ use Illuminate\Support\Facades\Route;
 use Orchestra\Database\ConsoleServiceProvider;
 use QCod\ImageUp\Tests\Models\User;
 use QCod\ImageUp\ImageUpServiceProvider;
-use Intervention\Image\ImageServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 abstract class TestCase extends OrchestraTestCase
 {
+    protected function assertArraySubset(array $subset, array $array): void
+    {
+        foreach ($subset as $key => $value) {
+            $this->assertArrayHasKey($key, $array);
+
+            if (is_array($value)) {
+                $this->assertArraySubset($value, $array[$key]);
+            } else {
+                $this->assertSame($value, $array[$key]);
+            }
+        }
+    }
+
     /**
      * @param \Illuminate\Foundation\Application $app
      */
@@ -40,7 +52,6 @@ abstract class TestCase extends OrchestraTestCase
     protected function getPackageProviders($app)
     {
         return [
-            ImageServiceProvider::class,
             ImageUpServiceProvider::class,
         ];
     }
@@ -49,13 +60,6 @@ abstract class TestCase extends OrchestraTestCase
      * @param \Illuminate\Foundation\Application $app
      * @return array
      */
-    protected function getPackageAliases($app)
-    {
-        return [
-            'Image' => \Intervention\Image\Facades\Image::class
-        ];
-    }
-
     /**
      * Create a user with image fields options
      *
