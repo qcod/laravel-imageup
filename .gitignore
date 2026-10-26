@@ -4,4 +4,5 @@
 /.vscode
 .env
 .phpunit.result.cache
+/.phpunit.cache
 /composer.lock
