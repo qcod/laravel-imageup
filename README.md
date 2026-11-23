@@ -7,6 +7,13 @@
 
 The `qcod/laravel-imageup` is a trait which gives you auto upload, resize and crop for image feature with tons of customization.
 
+### Requirements
+
+- Laravel 12: PHP 8.2 - 8.5
+- Laravel 13: PHP 8.3 - 8.5
+
+Older Laravel versions remain available through the package's Composer constraints.
+
 ### Installation
 
 You can install the package via composer:
